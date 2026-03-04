@@ -1,0 +1,18 @@
+{% extends 'inventory/base.html' %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+
+<h4>Stock:</h4>
+{% render_table supplier_table %}
+
+
+<style>
+    #two {
+  background-color: #04AA6D;
+  color: white;
+}
+</style>
+
+
+{% endblock %}

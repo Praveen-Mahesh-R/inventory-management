@@ -1,0 +1,33 @@
+{% extends 'inventory/base.html' %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+
+<h4>Stock:</h4>
+{% render_table stock_table %}
+
+{% if type == 'Fr' or type == 'Gr' or type == 'Dr' or type == 'Cn' %}
+<style>
+    #three {
+  background-color: #04AA6D;
+  color: white;
+}
+</style>
+{% elif type == 'Sn' or type == 'Bv' %}
+<style>
+    #four {
+  background-color: #04AA6D;
+  color: white;
+}
+</style>
+{% else %}
+<style>
+    #five {
+  background-color: #04AA6D;
+  color: white;
+}
+</style>
+{% endif %}
+
+
+{% endblock %}

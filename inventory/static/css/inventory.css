@@ -1,0 +1,110 @@
+.page-header {
+  padding: 40px;
+  text-align: center;
+  background: #1abc9c;
+  color: white;
+  font-size: 30px;
+}
+
+.header-nav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    
+  background-color: #f1f1f1;
+    display: flex;
+     position: sticky;
+    flex-grow: 1;
+  top: 0
+}
+
+/* .header-nav li {
+  float: left;
+} */
+
+.header-nav a {
+  display: block;
+  color: black;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+/* Change the link and background color on hover */
+.header-nav a:hover, .stock-list:hover .dropbtn {
+  background-color: #555555;
+  color: white;
+}
+
+.active {
+  background-color: #04AA6D;
+  color: white;
+}
+
+.stock-list {
+  float: left;
+  overflow: hidden;
+}
+
+.stock-list .dropbtn {
+  font-size: 16px;  
+  border: none;
+  outline: none;
+  color: black;
+  padding: 14px 16px;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+}
+
+
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  float: none;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.stock-list:hover .dropdown-content {
+    opacity: 1;
+  display: block;
+}
+
+#six {
+  float: right;
+}
+
+
+.grid-container {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  
+  padding: 10px;
+}
+
+.grid-container div {
+  background-color: #f1f1f1;
+  border: 1px transparent;
+  padding: 10px;
+  margin: 10px;
+  font-size: 16px;
+  text-align: center;
+  border-radius: 4px;
+  
+}
