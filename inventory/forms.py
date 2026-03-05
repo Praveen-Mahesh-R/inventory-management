@@ -14,10 +14,18 @@ class SupplierForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         
-    
+class StockForm(forms.Form):
+    amount = forms.IntegerField(
+            label = "How much are you adding?",
+            required = True,
+            widget=forms.TextInput(attrs={'style':'max-width: 50px;'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
     
 
-class StockForm(forms.ModelForm):
+class ItemForm(forms.ModelForm):
 
     class Meta:
         model = StockItems

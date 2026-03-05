@@ -6,5 +6,6 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('supermart/supplier', views.supplier_list, name="supplier_list"),
     path('supermart/stock/<str:type>', views.stock_list, name="stock_list"),
-    path('supermart/new_item_add/', views.new_item_add, name="new_item_add")
+    path('supermart/new_item_add/', views.new_item_add, name="new_item_add"),
+    path('supermart/add_stock/<int:pk>', views.add_stock, name="add_stock")
 ]

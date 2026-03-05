@@ -42,8 +42,8 @@ class StockItems(Model):
                             default='Fr')
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
     stock = models.IntegerField(null=True)
-    quantity = models.CharField(max_length=20)
-    cost = models.IntegerField(null=True)
+    quantity = models.CharField(max_length=20, verbose_name="Quantity(Per Unit)")
+    cost = models.IntegerField(null=True, verbose_name="Cost(Per Unit)")
 
     class Meta:
         constraints = [

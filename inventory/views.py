@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect, get_object_or_404
 # from .forms import PostForm
 from .models import *
 from .tables import *
@@ -31,11 +31,24 @@ def stock_list(request,type):
 
 def new_item_add(request):
     if request.method == "POST":
-        form = StockForm(request.POST)
+        form = ItemForm(request.POST)
         if form.is_valid():
             item = form.save(commit=False)
             item.save()
             return redirect('stock_list', type = item.type)
     else:
-        form = StockForm()
+        form = ItemForm()
     return render(request, "inventory/new_item_add.html",{'form': form})
+
+def add_stock(request,pk):
+    obj = get_object_or_404(StockItems,pk=pk)
+    if request.method == "POST":
+        form = StockForm(request.POST,request.FILES)
+        if form.is_valid():
+            stock = form.cleaned_data
+            obj.stock = obj.stock + stock["amount"]
+            obj.save()
+            return redirect('stock_list', type = obj.type)
+    else:
+        form = StockForm()
+    return render(request, "inventory/add_stock.html",{'form': form})
