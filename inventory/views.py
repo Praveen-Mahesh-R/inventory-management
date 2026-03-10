@@ -4,9 +4,33 @@ from .models import *
 from .tables import *
 from .forms import *
 from django_tables2 import SingleTableView
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages
 
 
 # Create your views here.
+def user_login(request):
+    if request.method == 'POST':
+        form = LoginForm(request, data=request.POST)
+        username = request.POST['username']
+        password = request.POST['password']
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('home') # Replace 'home' with your success URL name
+    else:
+        form = LoginForm()
+    return render(request, 'registration/login.html', {'form': form})
+
+def logout_check(request):
+    return render(request, 'registration/logout.html', {})
+
+
+
 def home(request):
     
     # fresh_produce_table = FreshProduceTable(Fresh_Produce.objects.all())
@@ -52,3 +76,22 @@ def add_stock(request,pk):
     else:
         form = StockForm()
     return render(request, "inventory/add_stock.html",{'form': form})
+
+def add_supplier(request):
+    if request.method == "POST":
+        form = SupplierForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            return redirect('supplier_list')
+    else:
+        form = SupplierForm()
+    return render(request, "inventory/supplier_add.html",{'form': form})
+
+def billing(request):
+    return render(request, "inventory/billing_page.html",{})
+
+def load_cities(request):
+    state_id = request.GET.get('state')
+    cities = City.objects.filter(state_id=state_id).all()
+    return render(request, 'inventory/city_list.html', {'cities': cities})

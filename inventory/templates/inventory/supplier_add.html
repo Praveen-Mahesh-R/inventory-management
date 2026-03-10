@@ -1,0 +1,36 @@
+{% extends 'inventory/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<h4 style="padding: 10px;">Add:</h4>
+<div id="inventory" data-city-url="{% url 'ajax_load_cities' %}">  
+{{ form|as_crispy_errors }}
+    {% crispy form %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script type="text/javascript">
+    window.CSRF_TOKEN = "{{csrf_token}}";
+</script>
+<script>
+    $("#id_state").change(function () {
+        var url = $("#inventory").attr("data-city-url"); 
+        var stateId = $(this).val();  
+
+        $.ajax({                      
+            url: url,                 
+            data: {
+                'state': stateId     
+            },
+            success: function (data) {  
+                console.log(data);
+                $("#id_city").html(data);
+            }
+        });
+
+    });
+</script>
+
+    
+{% endblock %}

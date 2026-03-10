@@ -16,9 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth
+from inventory import views
+from inventory.forms import *
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-   
-    path('', include('inventory.urls'))
+    
+    path('accounts/login/', views.user_login, name='login'),
+    path('accounts/logout/', auth.LogoutView.as_view(next_page='/'), name='logout'),
+    path('', include('inventory.urls')),
+    
 ]

@@ -1,9 +1,21 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Row, Column
+from django.contrib.auth.forms import AuthenticationForm
 
 from .models import *
 
+
+class LoginForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            'username',
+            'password',
+            Submit('submit', 'Log In', css_class='btn-success') # Customize the submit button
+        )
 class SupplierForm(forms.ModelForm):
 
     class Meta:
@@ -12,6 +24,28 @@ class SupplierForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['city'].queryset = City.objects.none()
+
+        if 'state' in self.data:
+            print("hello")
+            try:
+                state_id = int(self.data.get('state'))
+                self.fields['city'].queryset = City.objects.filter(state_id=state_id).order_by('name')
+            except (ValueError, TypeError):
+                pass  
+        elif self.instance.pk:
+            print("hello")
+            self.fields['city'].queryset = self.instance.state.city_set.order_by('name')
+        
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'name',
+            Row(
+                Column('state', css_class='form-group col-md-6 mb-0'),
+                Column('city', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Submit('submit','Add Supplier'))
         
         
 class StockForm(forms.Form):

@@ -19,8 +19,8 @@ class City(Model):
 
 class Supplier(Model):
     name = models.CharField(unique=True ,max_length=100)
-    location_state = models.ForeignKey(State, on_delete=models.CASCADE, blank=True, null=True)
-    location_city = models.ForeignKey(City, on_delete=models.CASCADE, blank=True, null=True)
+    state = models.ForeignKey(State, on_delete=models.CASCADE, blank=True, null=True)
+    city = models.ForeignKey(City, on_delete=models.CASCADE, blank=True, null=True)
     def __str__(self):
         return self.name
     
