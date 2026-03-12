@@ -49,11 +49,20 @@ class StockItems(Model):
         constraints = [
             models.UniqueConstraint(fields=['name','supplier'],name='unique_product')
         ]
-
-    
     
     def __str__(self):
         return self.name
+
+class Cart(Model):
+
+    
+    item = models.ForeignKey(StockItems, on_delete=models.CASCADE, blank=True, null=True)
+    units = models.IntegerField(default=1)
+    price = models.IntegerField()
+
+    
+    def __str__(self):
+        return str(self.item)
 
 # class AbstractItems(Model):
 #     name = models.CharField(max_length=100)

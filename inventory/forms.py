@@ -1,7 +1,9 @@
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout, Row, Column
+from crispy_forms.layout import Submit, Layout, Row, Column, Field
 from django.contrib.auth.forms import AuthenticationForm
+from dal import autocomplete
+
 
 from .models import *
 
@@ -58,6 +60,23 @@ class StockForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
+class SearchForm(forms.ModelForm):
+    class Meta:
+        model = Cart
+        fields = ('item',)
+        widget = {
+            'item': autocomplete.Select2(url='item-autocomplete')
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'item',
+            Submit('submit','Add Item to Cart')
+        )
+
+
 
 class ItemForm(forms.ModelForm):
 

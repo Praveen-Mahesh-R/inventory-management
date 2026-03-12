@@ -13,4 +13,10 @@ class StockTable(tables.Table):
         template_name = "django_tables2/bootstrap.html"
     add = tables.TemplateColumn(verbose_name="Add stock",template_code='<a href="{% url "add_stock" record.id %}" class="btn btn-success">Add</a>', orderable=False)
 
+class cartTable(tables.Table):
+    class Meta:
+        model = Cart
+        exclude = ('id',)
+        template_name = "django_tables2/bootstrap.html"
+
 

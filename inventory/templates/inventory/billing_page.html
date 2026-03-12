@@ -1,19 +1,30 @@
 {% extends 'inventory/base.html' %}
-
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+{% load static %}
 {% block content %}
 
 <div class="left-side" style="float: left; width: 50%;">
 <p>hello</p>
+        {% crispy form %}
+        {{ form.media }}
 </div>
 <div class="right-side" style="float: left; width: 50%;">
 <p>hi</p>
+
+{% render_table cart_table %}
+
 </div>
-
-
+<a href="{% url 'clear_table' %}">Clear</a>
+<p><br>Total Cost: {{ total_cost.price__sum }}</p>
 <style>
     #six {
   background-color: #04AA6D;
   color: white;
 }
-</style>    
+</style>
+
+
+
+
 {% endblock %}
