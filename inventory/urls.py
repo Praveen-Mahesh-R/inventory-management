@@ -1,6 +1,5 @@
 from django.urls import path,include
 from . import views
-from inventory.views import ItemAutocomplete
 # from inventory.views import Home
 
 urlpatterns = [
@@ -13,6 +12,8 @@ urlpatterns = [
     path('ajax/load-cities/', views.load_cities, name='ajax_load_cities'),
     path('supermart/logout/', views.logout_check, name="logout_check"),
     path('supermart/billing/', views.billing, name="billing"),
-    path('items-autocomplete/', ItemAutocomplete.as_view(), name="item-autocomplete"),
+    path('checkout/', views.checkout, name="checkout"),
     path('clear_table/', views.clear_table, name="clear_table"),
+    path('plus_units/<int:pk>', views.plus_units, name="plus_units"),
+    path('minus_units/<int:pk>', views.minus_units, name="minus_units"),
 ]

@@ -132,4 +132,12 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = ('bootstrap5',)
 LOGIN_REDIRECT_URL = '/'
 
 
+DJANGO_TABLES2_TABLE_ATTRS = {
+    'class': 'table inventory-table',
+    'thead': {
+        'class': 'table-light',   
+    }, 
+}
+
+
 

@@ -4,25 +4,36 @@
 {% load static %}
 {% block content %}
 
-<div class="left-side" style="float: left; width: 50%;">
-<p>hello</p>
+<div class="left-side" style="float: left; width: 30%; padding: 10px;">
+ {{ message }}
         {% crispy form %}
-        {{ form.media }}
+<p><br>Total Cost: {{ total_cost.total_price__sum }}</p>
 </div>
-<div class="right-side" style="float: left; width: 50%;">
-<p>hi</p>
+<div class="right-side" style="float: left; width: 70%; padding: 10px;">
+<h5>Bill Table:</h5>
 
 {% render_table cart_table %}
-
+<a href="{% url 'checkout' %}" class="btn btn-success">Buy</a>
+<a href="{% url 'clear_table' %}" class="btn btn-secondary" style="float: right;">Clear</a>
 </div>
-<a href="{% url 'clear_table' %}">Clear</a>
-<p><br>Total Cost: {{ total_cost.price__sum }}</p>
+
+
 <style>
     #six {
   background-color: #04AA6D;
   color: white;
 }
 </style>
+
+
+<script>
+
+    dselect(document.querySelector('#id_item'), {
+
+        search: true
+    });
+
+</script>
 
 
 

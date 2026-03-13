@@ -10,12 +10,8 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="{% static 'css/inventory.css' %}">
-        <script type="text/javascript" src="/static/collected/autocomplete_light/autocomplete.init.js"></script>
-<script type="text/javascript" src="/static/collected/autocomplete_light/select2.js"></script> 
-
-        <link src="/static/collected/autocomplete_light/vendor/select2/dist/css/select2.css" type="text/css" media="all" rel="stylesheet" />
-<link src="/static/collected/autocomplete_light/select2.css" type="text/css" media="all" rel="stylesheet" />
-
+        <link rel="stylesheet" href="https://unpkg.com/@jarstone/dselect/dist/css/dselect.css">
+        <script src="https://unpkg.com/@jarstone/dselect/dist/js/dselect.js"></script>
         {% if messages %}
         {% for message in messages %}
 

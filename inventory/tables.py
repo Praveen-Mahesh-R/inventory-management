@@ -10,13 +10,19 @@ class SupplierTable(tables.Table):
 class StockTable(tables.Table):
     class Meta:
         model = StockItems
-        template_name = "django_tables2/bootstrap.html"
-    add = tables.TemplateColumn(verbose_name="Add stock",template_code='<a href="{% url "add_stock" record.id %}" class="btn btn-success">Add</a>', orderable=False)
+        template_name = "django_tables2/bootstrap4.html"
+    add = tables.TemplateColumn(verbose_name="Add stock",template_code='{% load static %}<a href="{% url "add_stock" record.id %}"> <img src="{% static \'icons/plus-square.svg\' %}" </a>', orderable=False)
 
 class cartTable(tables.Table):
     class Meta:
         model = Cart
-        exclude = ('id',)
+        exclude = ('id','supplier')
         template_name = "django_tables2/bootstrap.html"
+    plus = tables.TemplateColumn(verbose_name="", template_code='{% load static %}<a href="{% url "plus_units" record.id %}"> <img src="{% static \'icons/plus-square.svg\' %}" </a>')
+    minus = tables.TemplateColumn(verbose_name="", template_code='{% load static %}<a href="{% url "minus_units" record.id %}"> <img src="{% static \'icons/dash-square.svg\' %}" </a>')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.columns['plus'].column.attrs = {"td":{"style" : "width:1%;" }}
+        self.columns['minus'].column.attrs = {"td":{"style" : "width:1%;" }}
 

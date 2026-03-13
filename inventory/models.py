@@ -58,7 +58,14 @@ class Cart(Model):
     
     item = models.ForeignKey(StockItems, on_delete=models.CASCADE, blank=True, null=True)
     units = models.IntegerField(default=1)
-    price = models.IntegerField()
+    price = models.IntegerField(verbose_name="Price (per unit)")
+    total_price = models.IntegerField()
+    supplier = models.CharField(max_length=100)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['item','supplier'],name='unique_cart')
+        ]
 
     
     def __str__(self):

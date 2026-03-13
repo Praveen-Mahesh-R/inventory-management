@@ -8,8 +8,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from dal import autocomplete
 from django.db.models import Sum
+from django.db import IntegrityError
 
 
 # Create your views here.
@@ -99,25 +99,57 @@ def add_supplier(request):
 @login_required
 def billing(request):
     items = StockItems.objects.all()
-    print("hello")
     if request.method == "POST":
-        print("bye")
         form = SearchForm(request.POST)
         if form.is_valid():
             item = form.cleaned_data
             stock = StockItems.objects.get(name=item['item'])
             price = stock.cost
-            cart = Cart(item = item['item'], price = price)
-            cart.save()
-            return redirect('billing')
+            supplier = stock.supplier
+            cart = Cart(item = item['item'], price = price, total_price = price, supplier = supplier)
+            try:
+                cart.save()
+            except IntegrityError as e:
+                message = "Already there"
+            return redirect('billing',)
     form = SearchForm()
     cart_table = cartTable(Cart.objects.all())
-    total_cost = Cart.objects.aggregate(Sum('price'))
+    total_cost = Cart.objects.aggregate(Sum('total_price'))
     print("hi")
     return render(request, "inventory/billing_page.html",{'form':form, 'cart_table':cart_table, 'total_cost': total_cost})
 
+
+def checkout(request):
+    for cart in Cart.objects.all():
+        cart_units = cart.units
+        stock_list = get_object_or_404(StockItems, pk = cart.item.pk)
+        if stock_list.stock < cart_units:
+            messages.warning(request, "Only {{stock_list.stock}} units of {{cart.item}} available to purchase")
+        stock_list.stock = stock_list.stock - cart_units
+        stock_list.save()
+        messages.success(request,"Purchase Successfull!!")
+    # Cart.objects.all().delete()
+    return redirect('billing')
+
 def clear_table(request):
     Cart.objects.all().delete()
+    return redirect('billing')
+
+def plus_units(request, pk):
+    obj = get_object_or_404(Cart,pk=pk)
+    obj.units = obj.units + 1
+    obj.total_price =  obj.price * obj.units
+    obj.save()
+    return redirect('billing')
+
+def minus_units(request, pk):
+    obj = get_object_or_404(Cart,pk=pk)
+    if obj.units > 1:
+        obj.units = obj.units - 1
+        obj.total_price =  obj.price * obj.units
+        obj.save()
+    else:
+        Cart.objects.filter(pk=pk).delete()
     return redirect('billing')
 
 @login_required
@@ -127,14 +159,6 @@ def load_cities(request):
     return render(request, 'inventory/city_list.html', {'cities': cities})
 
 
-class ItemAutocomplete(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        
-        qs = StockItems.objects.all()
 
-        if self.q:
-            qs = qs.filter(item__istartswith=self.q)
-
-        return qs
 
 

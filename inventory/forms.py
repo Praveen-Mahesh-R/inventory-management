@@ -65,7 +65,7 @@ class SearchForm(forms.ModelForm):
         model = Cart
         fields = ('item',)
         widget = {
-            'item': autocomplete.Select2(url='item-autocomplete')
+            'item': forms.Select(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -75,7 +75,15 @@ class SearchForm(forms.ModelForm):
             'item',
             Submit('submit','Add Item to Cart')
         )
-
+        self.fields['item'].required = True
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     item = cleaned_data.get('item')
+    #     supplier = cleaned_data.get('supplier')
+    #     if item and Cart.objects.get(item=item):
+    #         if supplier and Cart.objects.get(supplier=supplier):
+    #             raise forms.ValidationError("Already there")
+    #     return cleaned_data
 
 
 class ItemForm(forms.ModelForm):
