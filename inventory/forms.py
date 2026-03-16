@@ -2,13 +2,18 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Row, Column, Field
 from django.contrib.auth.forms import AuthenticationForm
-from dal import autocomplete
+from captcha.fields import CaptchaField
+
+
 
 
 from .models import *
 
 
 class LoginForm(AuthenticationForm):
+
+    captcha = CaptchaField()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
@@ -16,6 +21,7 @@ class LoginForm(AuthenticationForm):
         self.helper.layout = Layout(
             'username',
             'password',
+            'captcha',
             Submit('submit', 'Log In', css_class='btn-success') # Customize the submit button
         )
 class SupplierForm(forms.ModelForm):
@@ -90,7 +96,7 @@ class ItemForm(forms.ModelForm):
 
     class Meta:
         model = StockItems
-        fields = '__all__'
+        exclude = ('initial_date','restock_date',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -108,7 +114,7 @@ class ItemForm(forms.ModelForm):
                 css_class='form-row'
             ),
             'cost',
-            Submit('submit','Add Item to Catalogue')
+            Submit('submit','Submit')
         )
 
     # def clean(self):

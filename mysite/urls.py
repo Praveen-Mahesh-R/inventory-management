@@ -24,7 +24,7 @@ from inventory.forms import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
+    path('captcha/', include('captcha.urls')),
     path('accounts/login/', views.user_login, name='login'),
     path('accounts/logout/', auth.LogoutView.as_view(next_page='/'), name='logout'),
     path('', include('inventory.urls')),

@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-
+from django.conf.locale.en import formats
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,8 +31,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'dal',
-    'dal_select2',
+    # 'dal',
+    # 'dal_select2',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "django_tables2",
     'crispy_forms',
+    'captcha',
     'crispy_bootstrap5',
     'inventory',
 ]
@@ -108,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en-in'
 
 TIME_ZONE = 'Asia/Kolkata'
 
@@ -138,6 +139,8 @@ DJANGO_TABLES2_TABLE_ATTRS = {
         'class': 'table-light',   
     }, 
 }
-
-
-
+formats.SHORT_DATE_FORMAT = "d-m-Y"
+formats.DATE_FORMAT = "d-m-Y"
+formats.DATE_INPUT_FORMATS = ["d-m-Y"]
+# DATE_INPUT_FORMATS = ['%d-%m-%Y']
+# DATE_FORMAT = '%d-%m-%y'

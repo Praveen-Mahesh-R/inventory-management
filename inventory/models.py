@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Model
-
+from datetime import date
 
 # Create your models here.
 
@@ -41,14 +41,24 @@ class StockItems(Model):
                             choices=TYPE,
                             default='Fr')
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
-    stock = models.IntegerField(null=True)
+    stock = models.IntegerField(null=True, verbose_name="Stock Units")
     quantity = models.CharField(max_length=20, verbose_name="Quantity(Per Unit)")
     cost = models.IntegerField(null=True, verbose_name="Cost(Per Unit)")
-
+    initial_date = models.DateField(default=date.today)
+    restock_date = models.DateField(default=date.today)
+    
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['name','supplier'],name='unique_product')
         ]
+    
+    def get_initial_date(self):
+        from datetime import datetime
+        return self.initial_date.strftime("%d-%m-%Y")
+    
+    def get_restock_date(self):
+        from datetime import datetime
+        return self.restock_date.strftime("%d-%m-%Y")
     
     def __str__(self):
         return self.name

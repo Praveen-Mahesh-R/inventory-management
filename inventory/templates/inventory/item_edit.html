@@ -3,16 +3,8 @@
 
 {% block content %}
 
-<h4 style="padding: 10px;">Add a new item:</h4>
+<h4 style="padding: 10px;">Edit item:</h4>
   {{ form|as_crispy_errors }}
     {% crispy form %}
-
-
-
-<style>
-    #seven {
-  background-color: #04AA6D;
-  color: white;
-}
-</style>    
+   
 {% endblock %}

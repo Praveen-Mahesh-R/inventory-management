@@ -10,6 +10,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 from django.db import IntegrityError
+from django.core.exceptions import MultipleObjectsReturned
+from datetime import date
 
 
 # Create your views here.
@@ -64,11 +66,32 @@ def new_item_add(request):
         form = ItemForm(request.POST)
         if form.is_valid():
             item = form.save(commit=False)
+            item.initial_date = item.restock_date = date.today()
             item.save()
             return redirect('stock_list', type = item.type)
+        print(form.is_valid())
     else:
         form = ItemForm()
     return render(request, "inventory/new_item_add.html",{'form': form})
+
+@login_required
+def manage_item(request,pk):
+    return render(request, "inventory/manage_item.html",{'pk':pk})
+
+def item_edit(request, pk):
+    item = get_object_or_404(StockItems, pk=pk)
+    if request.method == "POST":
+        form = ItemForm(request.POST, instance=item)
+        print("Hi")
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            print("Hello")
+            return redirect('stock_list', type = item.type)
+        print(request.POST)
+    else:
+        form = ItemForm(instance=item)
+    return render(request, "inventory/item_edit.html",{'form': form})
 
 @login_required
 def add_stock(request,pk):
@@ -102,13 +125,13 @@ def billing(request):
     if request.method == "POST":
         form = SearchForm(request.POST)
         if form.is_valid():
-            item = form.cleaned_data
-            stock = StockItems.objects.get(name=item['item'])
+            item = form.save(commit=False)
+            supplier = item.item.supplier
+            stock = StockItems.objects.get(name=item.item, supplier = supplier)
             price = stock.cost
-            supplier = stock.supplier
-            cart = Cart(item = item['item'], price = price, total_price = price, supplier = supplier)
+            item.price = item.total_price = price
             try:
-                cart.save()
+                item.save()
             except IntegrityError as e:
                 message = "Already there"
             return redirect('billing',)
@@ -124,12 +147,13 @@ def checkout(request):
         cart_units = cart.units
         stock_list = get_object_or_404(StockItems, pk = cart.item.pk)
         if stock_list.stock < cart_units:
-            messages.warning(request, "Only {{stock_list.stock}} units of {{cart.item}} available to purchase")
+            messages.warning(request, "Not Enough Stock")
+            return redirect('billing')
         stock_list.stock = stock_list.stock - cart_units
-        stock_list.save()
-        messages.success(request,"Purchase Successfull!!")
+    stock_list.save()
+    messages.success(request,"Purchase Successfull!!")
     # Cart.objects.all().delete()
-    return redirect('billing')
+    return redirect('home')
 
 def clear_table(request):
     Cart.objects.all().delete()
