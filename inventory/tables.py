@@ -10,9 +10,11 @@ class SupplierTable(tables.Table):
 class StockTable(tables.Table):
     class Meta:
         model = StockItems
-        exclude = ('id',)
+        exclude = ('id','is_deleted',)
         template_name = "django_tables2/bootstrap4.html"
     manage = tables.TemplateColumn(verbose_name="Manage",template_code='{% load static %}<a href="{% url "manage_item" record.id %}"> <img src="{% static \'icons/gear-fill.svg\' %}" </a>', orderable=False)
+
+    
 
 class cartTable(tables.Table):
     class Meta:

@@ -56,8 +56,13 @@ def supplier_list(request):
     return render(request, "inventory/supplier_list.html",{"supplier_table":supplier_table,})
 
 @login_required
-def stock_list(request,type):
-    stock_table = StockTable(StockItems.objects.filter(type = type))
+def stock_list(request,type, bool_int = 0):
+    excluded_columns = ()
+    if bool_int:
+        excluded_columns = ('manage',)
+    stock_table = StockTable(StockItems.objects.filter(type = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
+    
+        
     return render(request, "inventory/stock_list.html",{"stock_table":stock_table, "type":type})
 
 @login_required
@@ -147,7 +152,7 @@ def billing(request):
     print("hi")
     return render(request, "inventory/billing_page.html",{'form':form, 'cart_table':cart_table, 'total_cost': total_cost})
 
-
+@login_required
 def checkout(request):
     for cart in Cart.objects.all():
         cart_units = cart.units
@@ -160,6 +165,18 @@ def checkout(request):
     messages.success(request,"Purchase Successfull!!")
     # Cart.objects.all().delete()
     return redirect('home')
+
+@login_required
+def remove_check(request,pk):
+    return render(request, "inventory/remove_check.html",{'pk': pk})
+
+def remove(request,pk):
+    obj = get_object_or_404(StockItems,pk=pk)
+    type = obj.type
+    obj.is_deleted = True
+    obj.save()
+    return redirect('stock_list', type = type)
+    
 
 def clear_table(request):
     Cart.objects.all().delete()

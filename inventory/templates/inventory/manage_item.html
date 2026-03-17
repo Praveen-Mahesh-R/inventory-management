@@ -7,7 +7,7 @@
 <div ALIGN='center'>
   <a href="{% url 'add_stock' pk=pk %}" class="btn btn-success">Restock</a>
   <a href="{% url 'item_edit' pk=pk %}" class="btn btn-success">Edit Item</a>
-  <a href="#" class="btn btn-success">Delete Item</a>
+  <a href="{% url 'remove_check' pk=pk %}" class="btn btn-success">Delete Item</a>
 </div>
 
 

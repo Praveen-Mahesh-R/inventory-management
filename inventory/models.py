@@ -46,6 +46,8 @@ class StockItems(Model):
     cost = models.IntegerField(null=True, verbose_name="Cost(Per Unit)")
     initial_date = models.DateField(default=date.today)
     restock_date = models.DateField(default=date.today)
+    is_deleted = models.BooleanField(default=False)
+
     
     class Meta:
         constraints = [
