@@ -141,6 +141,6 @@ DJANGO_TABLES2_TABLE_ATTRS = {
 }
 formats.SHORT_DATE_FORMAT = "d-m-Y"
 formats.DATE_FORMAT = "d-m-Y"
-formats.DATE_INPUT_FORMATS = ["d-m-Y"]
-# DATE_INPUT_FORMATS = ['%d-%m-%Y']
+formats.DATE_INPUT_FORMATS = ["%d-%m-%Y"]
+DATE_INPUT_FORMATS = ['%d-%m-%Y']
 # DATE_FORMAT = '%d-%m-%y'

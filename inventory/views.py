@@ -66,7 +66,10 @@ def new_item_add(request):
         form = ItemForm(request.POST)
         if form.is_valid():
             item = form.save(commit=False)
-            item.initial_date = item.restock_date = date.today()
+            if item.initial_date is None:
+                item.initial_date = date.today()
+            if item.restock_date is None:
+                item.restock_date = date.today()
             item.save()
             return redirect('stock_list', type = item.type)
         print(form.is_valid())
@@ -85,6 +88,8 @@ def item_edit(request, pk):
         print("Hi")
         if form.is_valid():
             item = form.save(commit=False)
+            if item.initial_date is None:
+                item.initial_date = date.today()
             item.save()
             print("Hello")
             return redirect('stock_list', type = item.type)
@@ -101,6 +106,7 @@ def add_stock(request,pk):
         if form.is_valid():
             stock = form.cleaned_data
             obj.stock = obj.stock + stock["amount"]
+            obj.restock_date = date.today()
             obj.save()
             return redirect('stock_list', type = obj.type)
     else:

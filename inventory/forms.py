@@ -3,6 +3,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Row, Column, Field
 from django.contrib.auth.forms import AuthenticationForm
 from captcha.fields import CaptchaField
+from django.contrib.admin.widgets import AdminDateWidget
 
 
 
@@ -91,12 +92,21 @@ class SearchForm(forms.ModelForm):
     #             raise forms.ValidationError("Already there")
     #     return cleaned_data
 
+class DateInput(forms.DateInput):
+    input_type = 'date'
+
+    def format_value(self, value):
+        return value.isoformat() if value is not None and hasattr(value, "isoformat") else ""
 
 class ItemForm(forms.ModelForm):
 
     class Meta:
         model = StockItems
-        exclude = ('initial_date','restock_date',)
+        fields = '__all__'
+        # widget = { 
+        #     'initial_date' : forms.DateInput(attrs={'class':'form-control', 'type':'date'}),
+        # }
+        
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -114,8 +124,30 @@ class ItemForm(forms.ModelForm):
                 css_class='form-row'
             ),
             'cost',
+            Row(
+                Column('initial_date', css_class='form-group col-md-6 mb-0'),
+                Column('restock_date', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
             Submit('submit','Submit')
         )
+        self.fields['initial_date'].widget = forms.DateInput(
+            format=('%Y-%m-%d'),
+            attrs={
+                'class':'form-control',
+                'type':'date',
+                
+            })
+        self.fields['restock_date'].widget = forms.DateInput(
+            format=('%Y-%m-%d'),
+            attrs={
+                'class':'form-control',
+                'type':'date',
+                
+            })
+
+
+
 
     # def clean(self):
     #     cleaned_data = super().clean()
