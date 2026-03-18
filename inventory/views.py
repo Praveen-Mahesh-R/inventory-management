@@ -60,6 +60,8 @@ def stock_list(request,type, bool_int = 0):
     excluded_columns = ()
     if bool_int:
         excluded_columns = ('manage',)
+    else:
+        excluded_columns = ('restore',)
     stock_table = StockTable(StockItems.objects.filter(type = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
     
         
@@ -170,10 +172,21 @@ def checkout(request):
 def remove_check(request,pk):
     return render(request, "inventory/remove_check.html",{'pk': pk})
 
+@login_required
+def restore_check(request,pk):
+    return render(request, "inventory/restore_check.html",{'pk': pk})
+
 def remove(request,pk):
     obj = get_object_or_404(StockItems,pk=pk)
     type = obj.type
     obj.is_deleted = True
+    obj.save()
+    return redirect('stock_list', type = type)
+
+def restore(request,pk):
+    obj = get_object_or_404(StockItems,pk=pk)
+    type = obj.type
+    obj.is_deleted = False
     obj.save()
     return redirect('stock_list', type = type)
     
