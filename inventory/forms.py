@@ -54,7 +54,7 @@ class SupplierForm(forms.ModelForm):
                 Column('city', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
-            Submit('submit','Add Supplier'))
+            Submit('submit','Submit'))
         
         
 class StockForm(forms.Form):

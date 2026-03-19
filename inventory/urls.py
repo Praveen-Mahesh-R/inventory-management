@@ -16,6 +16,7 @@ urlpatterns = [
     path('supermart/restore_check/<int:pk>',views.restore_check, name="restore_check"),
     path('supermart/restore/<int:pk>',views.restore, name="restore"),
     path('supermart/add_supplier/', views.add_supplier, name="add_supplier"),
+    path('supermart/edit_supplier/<int:pk>', views.edit_supplier, name="edit_supplier"),
     path('ajax/load-cities/', views.load_cities, name='ajax_load_cities'),
     path('supermart/logout/', views.logout_check, name="logout_check"),
     path('supermart/billing/', views.billing, name="billing"),

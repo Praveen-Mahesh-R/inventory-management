@@ -82,6 +82,18 @@ class Cart(Model):
     
     def __str__(self):
         return str(self.item)
+    
+class Customer(Model):
+    name = models.CharField(max_length=100)
+    phone_no = models.IntegerField(unique=True)
+
+class PurchaseHistory(Model):
+    customer_name = models.ForeignKey(Customer,on_delete=models.CASCADE)
+    product_list = models.JSONField()
+    total_cost =  models.IntegerField()
+    purchase_datetime = models.DateTimeField(auto_now_add= True)
+    
+
 
 # class AbstractItems(Model):
 #     name = models.CharField(max_length=100)

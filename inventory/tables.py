@@ -6,6 +6,7 @@ class SupplierTable(tables.Table):
     class Meta:
         model = Supplier
         template_name = "django_tables2/bootstrap4.html"
+    edit = tables.TemplateColumn(verbose_name="Edit",template_code='{% load static %}<a href="{% url "edit_supplier" record.id %}"> <img src="{% static \'icons/pencil-square.svg\' %}" </a>', orderable=False)
 
 class StockTable(tables.Table):
     class Meta:

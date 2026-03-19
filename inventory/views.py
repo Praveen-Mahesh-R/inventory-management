@@ -87,7 +87,7 @@ def new_item_add(request):
 @login_required
 def manage_item(request,pk):
     return render(request, "inventory/manage_item.html",{'pk':pk})
-
+@login_required
 def item_edit(request, pk):
     item = get_object_or_404(StockItems, pk=pk)
     if request.method == "POST":
@@ -130,6 +130,19 @@ def add_supplier(request):
             return redirect('supplier_list')
     else:
         form = SupplierForm()
+    return render(request, "inventory/supplier_add.html",{'form': form})
+
+@login_required
+def edit_supplier(request,pk):
+    item = get_object_or_404(Supplier, pk=pk)
+    if request.method == "POST":
+        form = SupplierForm(request.POST, instance=item)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            return redirect('supplier_list')
+    else:
+        form = SupplierForm(instance=item)
     return render(request, "inventory/supplier_add.html",{'form': form})
 
 @login_required
