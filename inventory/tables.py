@@ -31,3 +31,7 @@ class cartTable(tables.Table):
         self.columns['plus'].column.attrs = {"td":{"style" : "width:1%;" }}
         self.columns['minus'].column.attrs = {"td":{"style" : "width:1%;" }}
 
+class HistoryTable(tables.Table):
+    class Meta:
+        model = PurchaseHistory
+        template_name = "django_tables2/bootstrap.html"

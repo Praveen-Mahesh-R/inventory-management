@@ -8,12 +8,19 @@
  {{ message }}
         {% crispy form %}
 <p><br>Total Cost: {{ total_cost.total_price__sum }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ cform.phone_no.errors }}
+    {{ cform.phone_no|as_crispy_field }}
+    <button type="submit" name="submit_customer" class="save btn btn-success">Buy</button>
+</form>
 </div>
 <div class="right-side" style="float: left; width: 70%; padding: 10px;">
 <h5>Bill Table:</h5>
 
 {% render_table cart_table %}
-<a href="{% url 'checkout' %}" class="btn btn-success">Buy</a>
+<!-- <a href="{% url 'checkout' %}" class="btn btn-success">Buy</a> -->
 <a href="{% url 'clear_table' %}" class="btn btn-secondary" style="float: right;">Clear</a>
 </div>
 

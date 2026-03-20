@@ -67,6 +67,12 @@ def stock_list(request,type, bool_int = 0):
         
     return render(request, "inventory/stock_list.html",{"stock_table":stock_table, "type":type})
 
+
+@login_required
+def history_list(request):
+    history_table = HistoryTable(PurchaseHistory.objects.all())
+    return render(request, "inventory/history_list.html",{"history_table":history_table,})
+
 @login_required
 def new_item_add(request):
     if request.method == "POST":
@@ -146,26 +152,81 @@ def edit_supplier(request,pk):
     return render(request, "inventory/supplier_add.html",{'form': form})
 
 @login_required
-def billing(request):
+def billing(request,):
     items = StockItems.objects.all()
     if request.method == "POST":
-        form = SearchForm(request.POST)
-        if form.is_valid():
-            item = form.save(commit=False)
-            supplier = item.item.supplier
-            stock = StockItems.objects.get(name=item.item, supplier = supplier)
-            price = stock.cost
-            item.price = item.total_price = price
-            try:
-                item.save()
-            except IntegrityError as e:
-                message = "Already there"
-            return redirect('billing',)
+        if 'submit_item' in request.POST:    
+            form = SearchForm(request.POST)
+            if form.is_valid():
+                item = form.save(commit=False)
+                supplier = item.item.supplier
+                stock = StockItems.objects.get(name=item.item, supplier = supplier)
+                price = stock.cost
+                item.price = item.total_price = price
+                try:
+                    item.save()
+                except IntegrityError as e:
+                    message = "Already there"
+                return redirect('billing',)
+        elif 'submit_customer' in request.POST:  
+            cform = CustomerForm(request.POST)
+            if cform.is_valid():
+                cust_form = cform.cleaned_data
+                # if Customer.objects.filter(phone_no = customer['phone_no']).exists():
+                name_list = []
+                unit_list = []
+                price_list = []
+                for cart in Cart.objects.all():
+                    cart_units = cart.units
+                    
+                    stock_list = get_object_or_404(StockItems, pk = cart.item.pk)
+                    if stock_list.stock < cart_units:
+                        messages.warning(request, "Not Enough Stock")
+                        return redirect('billing')
+                    print(cart.item)
+                    name_list.append(cart.item.name)
+                    unit_list.append(cart.units)
+                    price_list.append(cart.price)
+                    stock_list.stock = stock_list.stock - cart_units
+
+                customer = get_object_or_404(Customer, phone_no = cust_form['phone_no'])
+                json_data = {
+                    "product_name":name_list,
+                    "product_unit":unit_list,
+                    "product_price":price_list
+                }
+                total_cost = Cart.objects.aggregate(Sum('total_price'))['total_price__sum']
+                PurchaseHistory.objects.create(
+                    customer_no = customer.phone_no,
+                    product_list = json_data,
+                    total_cost = total_cost
+                    
+                )
+                stock_list.save()
+                messages.success(request,"Purchase Successfull!!")
+                # Cart.objects.all().delete()
+                return redirect('home')
     form = SearchForm()
+    cform = CustomerForm()
     cart_table = cartTable(Cart.objects.all())
     total_cost = Cart.objects.aggregate(Sum('total_price'))
-    print("hi")
-    return render(request, "inventory/billing_page.html",{'form':form, 'cart_table':cart_table, 'total_cost': total_cost})
+    
+    return render(request, "inventory/billing_page.html",{'form':form, 'cform':cform, 'cart_table':cart_table, 'total_cost': total_cost,})
+
+
+# def buy(request):
+#     if request.method == "POST":
+#         form = CustomerForm(request.POST)
+#         if form.is_valid():
+#             customer = form.cleaned_data
+#             if Customer.objects.filter(phone_no = customer['phone_no']).exists():
+#                 buy
+#             item.save()
+#             return redirect('supplier_list')
+#     else:
+#         form = CustomerForm()
+#     return render(request,"inventory/checkout.html",{})
+
 
 @login_required
 def checkout(request):

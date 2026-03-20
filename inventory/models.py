@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Model
 from datetime import date
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Create your models here.
 
@@ -85,13 +86,24 @@ class Cart(Model):
     
 class Customer(Model):
     name = models.CharField(max_length=100)
-    phone_no = models.IntegerField(unique=True)
+    phone_no = models.IntegerField(unique=True,
+        validators=[
+            MinValueValidator(1000000000),
+            MaxValueValidator(9999999999)
+        ])
+
+    def __str__(self):
+        return self.name
 
 class PurchaseHistory(Model):
-    customer_name = models.ForeignKey(Customer,on_delete=models.CASCADE)
+    customer_no = models.IntegerField()
     product_list = models.JSONField()
     total_cost =  models.IntegerField()
     purchase_datetime = models.DateTimeField(auto_now_add= True)
+
+    
+    def __str__(self):
+        return str(self.customer_no)
     
 
 
