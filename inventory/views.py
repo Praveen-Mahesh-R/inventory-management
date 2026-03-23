@@ -12,7 +12,8 @@ from django.db.models import Sum
 from django.db import IntegrityError
 from django.core.exceptions import MultipleObjectsReturned
 from datetime import date
-
+from json2html import *
+import json
 
 # Create your views here.
 def user_login(request):
@@ -71,7 +72,13 @@ def stock_list(request,type, bool_int = 0):
 @login_required
 def history_list(request):
     history_table = HistoryTable(PurchaseHistory.objects.all())
+    
     return render(request, "inventory/history_list.html",{"history_table":history_table,})
+
+@login_required
+def customer_list(request):
+    customer_table = CustomerTable(Customer.objects.all())
+    return render(request, "inventory/customer_list.html",{"customer_table":customer_table,})
 
 @login_required
 def new_item_add(request):
@@ -155,8 +162,9 @@ def edit_supplier(request,pk):
 def billing(request,):
     items = StockItems.objects.all()
     if request.method == "POST":
+        form = SearchForm(request.POST)
+        cform = PhoneForm(request.POST)
         if 'submit_item' in request.POST:    
-            form = SearchForm(request.POST)
             if form.is_valid():
                 item = form.save(commit=False)
                 supplier = item.item.supplier
@@ -168,8 +176,9 @@ def billing(request,):
                 except IntegrityError as e:
                     message = "Already there"
                 return redirect('billing',)
-        elif 'submit_customer' in request.POST:  
-            cform = CustomerForm(request.POST)
+        else:
+            form = SearchForm()
+        if 'submit_customer' in request.POST:  
             if cform.is_valid():
                 cust_form = cform.cleaned_data
                 # if Customer.objects.filter(phone_no = customer['phone_no']).exists():
@@ -206,17 +215,43 @@ def billing(request,):
                 messages.success(request,"Purchase Successfull!!")
                 # Cart.objects.all().delete()
                 return redirect('home')
-    form = SearchForm()
-    cform = CustomerForm()
+        else:
+            cform = PhoneForm()
+    else:        
+        form = SearchForm()
+        cform = PhoneForm()
+    print(cform.errors)
     cart_table = cartTable(Cart.objects.all())
     total_cost = Cart.objects.aggregate(Sum('total_price'))
     
     return render(request, "inventory/billing_page.html",{'form':form, 'cform':cform, 'cart_table':cart_table, 'total_cost': total_cost,})
 
+def new_customer(request):
+    if request.method == "POST":
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            return redirect('supplier_list')
+    else:
+        form = CustomerForm()
+    return render(request, "inventory/customer_form.html",{'form': form})
+
+def edit_customer(request, pk):
+    item = get_object_or_404(Customer, pk=pk)
+    if request.method == "POST":
+        form = CustomerForm(request.POST, instance=item)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            return redirect('supplier_list')
+    else:
+        form = CustomerForm(instance=item)
+    return render(request, "inventory/customer_form.html",{'form': form})
 
 # def buy(request):
 #     if request.method == "POST":
-#         form = CustomerForm(request.POST)
+#         form = PhoneForm(request.POST)
 #         if form.is_valid():
 #             customer = form.cleaned_data
 #             if Customer.objects.filter(phone_no = customer['phone_no']).exists():
@@ -224,7 +259,7 @@ def billing(request,):
 #             item.save()
 #             return redirect('supplier_list')
 #     else:
-#         form = CustomerForm()
+#         form = PhoneForm()
 #     return render(request,"inventory/checkout.html",{})
 
 
@@ -293,6 +328,16 @@ def load_cities(request):
     return render(request, 'inventory/city_list.html', {'cities': cities})
 
 
+def cart_list(request,pk):
+    obj = get_object_or_404(PurchaseHistory,pk=pk)
+    product = zip(obj.product_list['product_name'],obj.product_list['product_unit'],obj.product_list['product_price'])
 
+    # table = json.loads(data)
+    # table = json2html.convert(json=data, table_attributes="id=\"info-table\" class=\"table table-bordered table-hover\"")
+    print(obj.product_list['product_name'])
+    context = {
+        'product':product,
+    }
+    return render(request, "inventory/product_list.html", context)
 
 

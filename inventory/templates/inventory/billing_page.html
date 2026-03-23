@@ -5,16 +5,20 @@
 {% block content %}
 
 <div class="left-side" style="float: left; width: 30%; padding: 10px;">
- {{ message }}
+<div class="add-to-cart">
         {% crispy form %}
-<p><br>Total Cost: {{ total_cost.total_price__sum }}</p>
-
+</div>
+<hr style="border: 1px dashed;">
+<div class="grand-total">
+<p>Total Cost: {{ total_cost.total_price__sum }}</p>
+</div>
+<hr style="border: 1px dashed;">
 <form method="post">
     {% csrf_token %}
-    {{ cform.phone_no.errors }}
     {{ cform.phone_no|as_crispy_field }}
-    <button type="submit" name="submit_customer" class="save btn btn-success">Buy</button>
+    <button type="submit" name="submit_customer" style="float: left;" class="save btn btn-success">Buy</button>
 </form>
+<a href="{% url 'new_customer' %}" class="btn btn-secondary" style="float: right;">Add new customer</a>
 </div>
 <div class="right-side" style="float: left; width: 70%; padding: 10px;">
 <h5>Bill Table:</h5>

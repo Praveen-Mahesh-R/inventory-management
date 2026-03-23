@@ -1,0 +1,22 @@
+{% extends 'inventory/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% if form.instance.pk is None %}
+<h4 style="padding: 10px;">Add new customer:</h4>
+{% else %}
+<h4 style="padding: 10px;">Edit customer details:</h4>
+{% endif %}
+
+<div ALIGN='center'>
+    <form method="post">
+    {% csrf_token %}
+    <div style="justify-content: center; display: flex;">{{ form.name|as_crispy_field}}</div>
+    <div style="justify-content: center; display: flex;">{{ form.phone_no|as_crispy_field}}</div>
+    <button type="submit" style="display: flex;" class="save btn btn-success">Submit</button>
+</form>
+</div>
+
+
+    
+{% endblock %}

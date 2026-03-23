@@ -83,6 +83,7 @@ class SearchForm(forms.ModelForm):
             Submit('submit_item','Add Item to Cart')
         )
         self.fields['item'].required = True
+        
     # def clean(self):
     #     cleaned_data = super().clean()
     #     item = cleaned_data.get('item')
@@ -147,9 +148,9 @@ class ItemForm(forms.ModelForm):
             })
 
 
-class CustomerForm(forms.Form):
+class PhoneForm(forms.Form):
 
-    phone_no = forms.IntegerField()
+    phone_no = forms.IntegerField(required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -157,14 +158,29 @@ class CustomerForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         phone_no = cleaned_data.get('phone_no')
+        self.helper = FormHelper()
+        
 
         if not phone_no:
             self.add_error('phone_no',"Should Not be Empty")
-        if len(str(phone_no)) != 10:
+        elif len(str(phone_no)) != 10:
             self.add_error('phone_no',"Enter Valid Phone no.")
-        if not Customer.objects.filter(phone_no = phone_no).exists():
+            raise forms.ValidationError("Enter Valid Phone no.")
+        elif not Customer.objects.filter(phone_no = phone_no).exists():
             self.add_error('phone_no','There is no customer with this phone number, add new')
         return cleaned_data
+    
+class CustomerForm(forms.ModelForm):
+
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+    
+
     
 
     # def clean(self):

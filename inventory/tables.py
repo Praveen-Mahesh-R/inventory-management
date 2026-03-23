@@ -1,6 +1,8 @@
 import django_tables2 as tables
 from django_tables2.utils import A
+from django_tables2.columns import JSONColumn
 from .models import *
+from django.utils.safestring import mark_safe
 
 class SupplierTable(tables.Table):
     class Meta:
@@ -16,6 +18,11 @@ class StockTable(tables.Table):
     manage = tables.TemplateColumn(verbose_name="Manage",template_code='{% load static %}<a href="{% url "manage_item" record.id %}"> <img src="{% static \'icons/gear-fill.svg\' %}" </a>', orderable=False)
     restore = tables.TemplateColumn(verbose_name="Restore",template_code='{% load static %}<a href="{% url "restore_check" record.id %}"> <img src="{% static \'icons/restore-svgrepo-com.svg\' %}" width="30" height="30"> </a>', orderable=False)
 
+class CustomerTable(tables.Table):
+    class Meta:
+        model = Customer
+        template_name = "django_tables2/bootstrap4.html"
+    edit = tables.TemplateColumn(verbose_name="Edit",template_code='{% load static %}<a href="{% url "edit_customer" record.id %}"> <img src="{% static \'icons/pencil-square.svg\' %}" </a>', orderable=False)
     
 
 class cartTable(tables.Table):
@@ -31,7 +38,20 @@ class cartTable(tables.Table):
         self.columns['plus'].column.attrs = {"td":{"style" : "width:1%;" }}
         self.columns['minus'].column.attrs = {"td":{"style" : "width:1%;" }}
 
+class ProductListTable(tables.Table):
+    product_name = tables.Column()
+    product_unit = tables.Column()
+    product_price = tables.Column()
+
+
 class HistoryTable(tables.Table):
+    # customer_name = tables.Column(accessor='customer.name')
+    product_list = tables.TemplateColumn(template_code='<a href="{% url "cart_list" record.id %}">Check Cart </a>')
     class Meta:
         model = PurchaseHistory
         template_name = "django_tables2/bootstrap.html"
+        exclude = ("id",)
+    
+    print("hello")
+    
+

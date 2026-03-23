@@ -1,0 +1,30 @@
+{% extends 'inventory/base.html' %}
+
+
+{% block content %}
+
+<h2>Cart:</h2>
+<table class="table table-bordered cart-table">
+    <tr>
+        <th>Name</th>
+        <th>Units</th>
+        <th>Price(per-unit)</th>
+    </tr>
+    {% for name, unit, price in product %}
+    <tr>
+        <td>{{ name }}</td>
+        <td>{{ unit }}</td>
+        <td>{{ price }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<!-- <ul>
+{% for name, unit, price in product %}
+    <li>
+        {{ name }}
+        {{ unit }}
+        {{ price }}
+    </li>
+{% endfor %}
+</ul> -->
+{% endblock %}

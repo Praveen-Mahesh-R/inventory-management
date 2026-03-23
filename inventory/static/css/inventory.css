@@ -123,4 +123,33 @@
   color: black;
 }
 
+.add-to-cart{
+  padding-bottom: 5px;
+  text-align: center;
+  display: block;
+}
+
+.grand-total {
+  padding: 10px;
+  /* border: 1px solid rgb(212, 212, 212); */
+  text-align:center;
+}
+
+.grand-total p {
+  margin: auto;
+  padding: 0;
+  text-decoration: underline;
+  font-size: larger;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.cart-table th{
+  background-color: #f2f2f2;
+}
+
 
