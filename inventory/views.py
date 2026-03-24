@@ -3,19 +3,16 @@ from django.shortcuts import render,redirect, get_object_or_404
 from .models import *
 from .tables import *
 from .forms import *
-from django_tables2 import SingleTableView
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 from django.db import IntegrityError
-from django.core.exceptions import MultipleObjectsReturned
 from datetime import date
 from json2html import *
-import json
 
-# Create your views here.
+
+#login view
 def user_login(request):
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
@@ -32,30 +29,25 @@ def user_login(request):
         form = LoginForm()
     return render(request, 'registration/login.html', {'form': form})
 
+#logout page view
 def logout_check(request):
     return render(request, 'registration/logout.html', {})
 
 
-
+#default home page view
 def home(request):
-    
-    # fresh_produce_table = FreshProduceTable(Fresh_Produce.objects.all())
-    # grains_table = GrainsTable(Grains.objects.all())
-    # dairy_table = DairyTable(Dairy.objects.all())
-    # condiments_table = CondimentTable(Condiments.objects.all())
-    # snacks_table = SnacksTable(Snacks.objects.all())
-    # beverages_table = BeveragesTable(Beverages.objects.all())
-    # personal_care_table  = PersonalCareTable(Personal_Care.objects.all())
-    # household_table = HouseholdTable(Household_Supplies.objects.all())
-    # stationery_table = StationeryTable(Stationery.objects.all())
-
     return render(request, "inventory/home.html",{})
 
+
+#Views of all the table pages in website
+
+#Table of supplier
 @login_required
 def supplier_list(request):
     supplier_table = SupplierTable(Supplier.objects.all())
     return render(request, "inventory/supplier_list.html",{"supplier_table":supplier_table,})
 
+#Table of items (including deleted items)
 @login_required
 def stock_list(request,type, bool_int = 0):
     excluded_columns = ()
@@ -68,18 +60,35 @@ def stock_list(request,type, bool_int = 0):
         
     return render(request, "inventory/stock_list.html",{"stock_table":stock_table, "type":type})
 
-
+#Table of past purchase history
 @login_required
 def history_list(request):
     history_table = HistoryTable(PurchaseHistory.objects.all())
     
     return render(request, "inventory/history_list.html",{"history_table":history_table,})
 
+#Table of past purchase history items (accessed through the above table)
+@login_required
+def cart_list(request,pk):
+    obj = get_object_or_404(PurchaseHistory,pk=pk)
+    product = zip(obj.product_list['product_name'],obj.product_list['product_unit'],obj.product_list['product_price'])
+    print(obj.product_list['product_name'])
+    context = {
+        'product':product,
+        'total':obj.total_cost
+    }
+    return render(request, "inventory/product_list.html", context)
+
+#Table of customer
 @login_required
 def customer_list(request):
     customer_table = CustomerTable(Customer.objects.all())
     return render(request, "inventory/customer_list.html",{"customer_table":customer_table,})
 
+
+#Views to add new or edit content in database
+
+#Adding new item to inventory catalogue
 @login_required
 def new_item_add(request):
     if request.method == "POST":
@@ -97,9 +106,12 @@ def new_item_add(request):
         form = ItemForm()
     return render(request, "inventory/new_item_add.html",{'form': form})
 
+#Page to view and select various functions regarding inventory item
 @login_required
 def manage_item(request,pk):
     return render(request, "inventory/manage_item.html",{'pk':pk})
+
+#Editng details of existing item in catalogue
 @login_required
 def item_edit(request, pk):
     item = get_object_or_404(StockItems, pk=pk)
@@ -118,6 +130,7 @@ def item_edit(request, pk):
         form = ItemForm(instance=item)
     return render(request, "inventory/item_edit.html",{'form': form})
 
+#Replenishing stock of an item in inventory
 @login_required
 def add_stock(request,pk):
     obj = get_object_or_404(StockItems,pk=pk)
@@ -133,6 +146,7 @@ def add_stock(request,pk):
         form = StockForm()
     return render(request, "inventory/add_stock.html",{'form': form})
 
+#Adding new supplier to database
 @login_required
 def add_supplier(request):
     if request.method == "POST":
@@ -145,6 +159,7 @@ def add_supplier(request):
         form = SupplierForm()
     return render(request, "inventory/supplier_add.html",{'form': form})
 
+#Editing existing supplier details
 @login_required
 def edit_supplier(request,pk):
     item = get_object_or_404(Supplier, pk=pk)
@@ -158,6 +173,37 @@ def edit_supplier(request,pk):
         form = SupplierForm(instance=item)
     return render(request, "inventory/supplier_add.html",{'form': form})
 
+#Adding new customer to database
+@login_required
+def new_customer(request):
+    if request.method == "POST":
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            return redirect('supplier_list')
+    else:
+        form = CustomerForm()
+    return render(request, "inventory/customer_form.html",{'form': form})
+
+#Editing existing customer details
+@login_required
+def edit_customer(request, pk):
+    item = get_object_or_404(Customer, pk=pk)
+    if request.method == "POST":
+        form = CustomerForm(request.POST, instance=item)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            return redirect('supplier_list')
+    else:
+        form = CustomerForm(instance=item)
+    return render(request, "inventory/customer_form.html",{'form': form})
+
+
+#Other views
+
+#Billing page to add items to cart and purchasing them
 @login_required
 def billing(request,):
     items = StockItems.objects.all()
@@ -226,65 +272,19 @@ def billing(request,):
     
     return render(request, "inventory/billing_page.html",{'form':form, 'cform':cform, 'cart_table':cart_table, 'total_cost': total_cost,})
 
-def new_customer(request):
-    if request.method == "POST":
-        form = CustomerForm(request.POST)
-        if form.is_valid():
-            item = form.save(commit=False)
-            item.save()
-            return redirect('supplier_list')
-    else:
-        form = CustomerForm()
-    return render(request, "inventory/customer_form.html",{'form': form})
 
-def edit_customer(request, pk):
-    item = get_object_or_404(Customer, pk=pk)
-    if request.method == "POST":
-        form = CustomerForm(request.POST, instance=item)
-        if form.is_valid():
-            item = form.save(commit=False)
-            item.save()
-            return redirect('supplier_list')
-    else:
-        form = CustomerForm(instance=item)
-    return render(request, "inventory/customer_form.html",{'form': form})
-
-# def buy(request):
-#     if request.method == "POST":
-#         form = PhoneForm(request.POST)
-#         if form.is_valid():
-#             customer = form.cleaned_data
-#             if Customer.objects.filter(phone_no = customer['phone_no']).exists():
-#                 buy
-#             item.save()
-#             return redirect('supplier_list')
-#     else:
-#         form = PhoneForm()
-#     return render(request,"inventory/checkout.html",{})
-
-
-@login_required
-def checkout(request):
-    for cart in Cart.objects.all():
-        cart_units = cart.units
-        stock_list = get_object_or_404(StockItems, pk = cart.item.pk)
-        if stock_list.stock < cart_units:
-            messages.warning(request, "Not Enough Stock")
-            return redirect('billing')
-        stock_list.stock = stock_list.stock - cart_units
-    stock_list.save()
-    messages.success(request,"Purchase Successfull!!")
-    # Cart.objects.all().delete()
-    return redirect('home')
-
+#Page asking confirmation on deleting an item from catalogue
 @login_required
 def remove_check(request,pk):
     return render(request, "inventory/remove_check.html",{'pk': pk})
 
+#Page asking confirmation on restoring an item into catalogue
 @login_required
 def restore_check(request,pk):
     return render(request, "inventory/restore_check.html",{'pk': pk})
 
+#Deletes item from inventory table
+@login_required
 def remove(request,pk):
     obj = get_object_or_404(StockItems,pk=pk)
     type = obj.item_type.code
@@ -292,6 +292,8 @@ def remove(request,pk):
     obj.save()
     return redirect('stock_list', type = type)
 
+#Restores item back into inventory table
+@login_required
 def restore(request,pk):
     obj = get_object_or_404(StockItems,pk=pk)
     type = obj.item_type.code
@@ -299,11 +301,14 @@ def restore(request,pk):
     obj.save()
     return redirect('stock_list', type = type)
     
-
+#Deletes all items in cart table
+@login_required
 def clear_table(request):
     Cart.objects.all().delete()
     return redirect('billing')
 
+#Adds one more unit of an item added into cart
+@login_required
 def plus_units(request, pk):
     obj = get_object_or_404(Cart,pk=pk)
     obj.units = obj.units + 1
@@ -311,6 +316,8 @@ def plus_units(request, pk):
     obj.save()
     return redirect('billing')
 
+#Subtracts one unit from item added to cart if the unit count is more than 1, else deletes the item from cart
+@login_required
 def minus_units(request, pk):
     obj = get_object_or_404(Cart,pk=pk)
     if obj.units > 1:
@@ -321,24 +328,13 @@ def minus_units(request, pk):
         Cart.objects.filter(pk=pk).delete()
     return redirect('billing')
 
+#Loads dropdown-list of city based on the state seleted in supplier form
 @login_required
 def load_cities(request):
     state_id = request.GET.get('state')
     cities = City.objects.filter(state_id=state_id).all()
     return render(request, 'inventory/city_list.html', {'cities': cities})
 
-@login_required
-def cart_list(request,pk):
-    obj = get_object_or_404(PurchaseHistory,pk=pk)
-    product = zip(obj.product_list['product_name'],obj.product_list['product_unit'],obj.product_list['product_price'])
 
-    # table = json.loads(data)
-    # table = json2html.convert(json=data, table_attributes="id=\"info-table\" class=\"table table-bordered table-hover\"")
-    print(obj.product_list['product_name'])
-    context = {
-        'product':product,
-        'total':obj.total_cost
-    }
-    return render(request, "inventory/product_list.html", context)
 
 

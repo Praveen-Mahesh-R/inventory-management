@@ -33,8 +33,7 @@ urlpatterns = [
     path('supermart/logout/', views.logout_check, name="logout_check"),
     
     path('supermart/billing/', views.billing, name="billing"),
-    path('checkout/', views.checkout, name="checkout"),
-    # path('buy/', views.buy, name="buy"),
+   
     path('cart_list/<int:pk>',views.cart_list, name="cart_list"),
     path('clear_table/', views.clear_table, name="clear_table"),
     path('plus_units/<int:pk>', views.plus_units, name="plus_units"),

@@ -3,14 +3,15 @@ from django.db.models import Model
 from datetime import date
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-# Create your models here.
 
+# Part of supplier address
 class State(Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
 
+# Part of supplier address
 class City(Model):
     state = models.ForeignKey(State, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=100)
@@ -18,6 +19,7 @@ class City(Model):
     def __str__(self):
         return self.name
 
+# Database of all suppliers
 class Supplier(Model):
     name = models.CharField(unique=True ,max_length=100)
     state = models.ForeignKey(State, on_delete=models.CASCADE, blank=True, null=True)
@@ -25,7 +27,7 @@ class Supplier(Model):
     def __str__(self):
         return self.name
 
-
+# Store Type of an item
 class ItemType(Model):
     code = models.CharField(max_length=2, unique=True)
     name = models.CharField(max_length=100)
@@ -33,6 +35,8 @@ class ItemType(Model):
     def __str__(self):
         return self.name
 
+
+# Database of all items in the inventory catalogue
 class StockItems(Model):
     
     name = models.CharField(max_length=100)
@@ -51,17 +55,20 @@ class StockItems(Model):
             models.UniqueConstraint(fields=['name','supplier'],name='unique_product')
         ]
     
-    def get_initial_date(self):
-        from datetime import datetime
-        return self.initial_date.strftime("%d-%m-%Y")
+    # def get_initial_date(self):
+    #     from datetime import datetime
+    #     return self.initial_date.strftime("%d-%m-%Y")
     
-    def get_restock_date(self):
-        from datetime import datetime
-        return self.restock_date.strftime("%d-%m-%Y")
+    # def get_restock_date(self):
+    #     from datetime import datetime
+    #     return self.restock_date.strftime("%d-%m-%Y")
     
     def __str__(self):
         return self.name
 
+
+
+# Temporary database to store items added to cart
 class Cart(Model):
 
     
@@ -79,7 +86,8 @@ class Cart(Model):
     
     def __str__(self):
         return str(self.item)
-    
+
+# Databse of customer details    
 class Customer(Model):
     name = models.CharField(max_length=100)
     phone_no = models.IntegerField(unique=True,
@@ -91,6 +99,7 @@ class Customer(Model):
     def __str__(self):
         return self.name
 
+# Database of past purchases
 class PurchaseHistory(Model):
     customer_no = models.IntegerField()
     product_list = models.JSONField()
