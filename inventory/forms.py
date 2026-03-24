@@ -115,7 +115,7 @@ class ItemForm(forms.ModelForm):
         self.helper.layout = Layout(
             'name',
             Row(
-                Column('type', css_class='form-group col-md-6 mb-0'),
+                Column('item_type', css_class='form-group col-md-6 mb-0'),
                 Column('supplier', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),

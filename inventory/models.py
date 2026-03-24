@@ -34,21 +34,9 @@ class ItemType(Model):
         return self.name
 
 class StockItems(Model):
-    TYPE = (
-        ('Fr','Fresh Produce'),
-        ('Gr', 'Grains'),
-        ('Dr', 'Dairy'),
-        ('Cn', 'Condiments'),
-        ('Sn', 'Snacks'),
-        ('Bv', 'Beverages'),
-        ('Pc', 'Personal Care'),
-        ('Hs', 'Household supplies'),
-        ('St', 'Stationery')
-    )
+    
     name = models.CharField(max_length=100)
-    type = models.CharField(max_length=2,
-                            choices=TYPE,
-                            default='Fr')
+    item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, blank=True, null=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
     stock = models.IntegerField(null=True, verbose_name="Stock Units")
     quantity = models.CharField(max_length=20, verbose_name="Quantity(Per Unit)")

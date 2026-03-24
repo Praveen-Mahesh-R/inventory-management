@@ -63,7 +63,7 @@ def stock_list(request,type, bool_int = 0):
         excluded_columns = ('manage',)
     else:
         excluded_columns = ('restore',)
-    stock_table = StockTable(StockItems.objects.filter(type = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
+    stock_table = StockTable(StockItems.objects.filter(item_type__code__contains = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
     
         
     return render(request, "inventory/stock_list.html",{"stock_table":stock_table, "type":type})
@@ -91,7 +91,7 @@ def new_item_add(request):
             if item.restock_date is None:
                 item.restock_date = date.today()
             item.save()
-            return redirect('stock_list', type = item.type)
+            return redirect('stock_list', type = item.item_type.code)
         print(form.is_valid())
     else:
         form = ItemForm()
@@ -112,7 +112,7 @@ def item_edit(request, pk):
                 item.initial_date = date.today()
             item.save()
             print("Hello")
-            return redirect('stock_list', type = item.type)
+            return redirect('stock_list', type = item.item_type.code)
         print(request.POST)
     else:
         form = ItemForm(instance=item)
@@ -128,7 +128,7 @@ def add_stock(request,pk):
             obj.stock = obj.stock + stock["amount"]
             obj.restock_date = date.today()
             obj.save()
-            return redirect('stock_list', type = obj.type)
+            return redirect('stock_list', type = obj.item_type.code)
     else:
         form = StockForm()
     return render(request, "inventory/add_stock.html",{'form': form})
@@ -287,14 +287,14 @@ def restore_check(request,pk):
 
 def remove(request,pk):
     obj = get_object_or_404(StockItems,pk=pk)
-    type = obj.type
+    type = obj.item_type.code
     obj.is_deleted = True
     obj.save()
     return redirect('stock_list', type = type)
 
 def restore(request,pk):
     obj = get_object_or_404(StockItems,pk=pk)
-    type = obj.type
+    type = obj.item_type.code
     obj.is_deleted = False
     obj.save()
     return redirect('stock_list', type = type)
