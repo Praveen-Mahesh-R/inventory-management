@@ -24,7 +24,15 @@ class Supplier(Model):
     city = models.ForeignKey(City, on_delete=models.CASCADE, blank=True, null=True)
     def __str__(self):
         return self.name
-    
+
+
+class ItemType(Model):
+    code = models.CharField(max_length=2, unique=True)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
 class StockItems(Model):
     TYPE = (
         ('Fr','Fresh Produce'),

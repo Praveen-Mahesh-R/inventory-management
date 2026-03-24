@@ -46,11 +46,12 @@ class ProductListTable(tables.Table):
 
 class HistoryTable(tables.Table):
     # customer_name = tables.Column(accessor='customer.name')
-    product_list = tables.TemplateColumn(template_code='<a href="{% url "cart_list" record.id %}">Check Cart </a>')
+    product_list = tables.TemplateColumn(template_code='<a href="{% url "cart_list" record.id %}" style="text-decoration: underline;">Check Cart </a>')
     class Meta:
         model = PurchaseHistory
         template_name = "django_tables2/bootstrap.html"
         exclude = ("id",)
+        order_by = ("-purchase_datetime",)
     
     print("hello")
     

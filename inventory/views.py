@@ -214,7 +214,7 @@ def billing(request,):
                 stock_list.save()
                 messages.success(request,"Purchase Successfull!!")
                 # Cart.objects.all().delete()
-                return redirect('home')
+                return redirect('history_list')
         else:
             cform = PhoneForm()
     else:        
@@ -327,7 +327,7 @@ def load_cities(request):
     cities = City.objects.filter(state_id=state_id).all()
     return render(request, 'inventory/city_list.html', {'cities': cities})
 
-
+@login_required
 def cart_list(request,pk):
     obj = get_object_or_404(PurchaseHistory,pk=pk)
     product = zip(obj.product_list['product_name'],obj.product_list['product_unit'],obj.product_list['product_price'])
@@ -337,6 +337,7 @@ def cart_list(request,pk):
     print(obj.product_list['product_name'])
     context = {
         'product':product,
+        'total':obj.total_cost
     }
     return render(request, "inventory/product_list.html", context)
 

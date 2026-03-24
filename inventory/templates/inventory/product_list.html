@@ -1,5 +1,5 @@
 {% extends 'inventory/base.html' %}
-
+{% load mathfilters %}
 
 {% block content %}
 
@@ -9,15 +9,24 @@
         <th>Name</th>
         <th>Units</th>
         <th>Price(per-unit)</th>
+        <th>Total Price</th>
     </tr>
     {% for name, unit, price in product %}
     <tr>
         <td>{{ name }}</td>
         <td>{{ unit }}</td>
         <td>{{ price }}</td>
+        <td>{{ price|mul:unit }}</td>
     </tr>
     {% endfor %}
+    <tr>
+        <th colspan="3" style="text-align: right;">Grand Total:</th>
+        <td>{{ total }}</td>
+    </tr>
 </table>
+    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-success">Go back</a>
+
+
 <!-- <ul>
 {% for name, unit, price in product %}
     <li>
