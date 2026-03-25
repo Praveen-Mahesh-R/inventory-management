@@ -181,7 +181,7 @@ def new_customer(request):
         if form.is_valid():
             item = form.save(commit=False)
             item.save()
-            return redirect('supplier_list')
+            return redirect('customer_list')
     else:
         form = CustomerForm()
     return render(request, "inventory/customer_form.html",{'form': form})
@@ -195,7 +195,7 @@ def edit_customer(request, pk):
         if form.is_valid():
             item = form.save(commit=False)
             item.save()
-            return redirect('supplier_list')
+            return redirect('customer_list')
     else:
         form = CustomerForm(instance=item)
     return render(request, "inventory/customer_form.html",{'form': form})
@@ -219,15 +219,15 @@ def billing(request,):
                 item.price = item.total_price = price
                 try:
                     item.save()
-                except IntegrityError as e:
-                    message = "Already there"
+                except IntegrityError:
+                    form.add_error('item','Already there')
+                    print("Already there ---------------------------")
                 return redirect('billing',)
         else:
             form = SearchForm()
         if 'submit_customer' in request.POST:  
             if cform.is_valid():
                 cust_form = cform.cleaned_data
-                # if Customer.objects.filter(phone_no = customer['phone_no']).exists():
                 name_list = []
                 unit_list = []
                 price_list = []
@@ -259,8 +259,7 @@ def billing(request,):
                 )
                 stock_list.save()
                 messages.success(request,"Purchase Successfull!!")
-                # Cart.objects.all().delete()
-                return redirect('history_list')
+                return redirect('cart_list', pk=PurchaseHistory.objects.last().pk)
         else:
             cform = PhoneForm()
     else:        

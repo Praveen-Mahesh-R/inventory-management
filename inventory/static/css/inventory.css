@@ -28,6 +28,9 @@
   text-align: center;
   padding: 14px 16px;
   text-decoration: none;
+  font-size: smaller;
+  font-weight:500;
+  letter-spacing: 1px;
 }
 
 /* Change the link and background color on hover */
@@ -55,6 +58,9 @@
   background-color: inherit;
   font-family: inherit;
   margin: 0;
+  font-size: smaller;
+  font-weight: 500;
+  letter-spacing: 1px;
 }
 
 

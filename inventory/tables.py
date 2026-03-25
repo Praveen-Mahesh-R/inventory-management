@@ -3,6 +3,7 @@ from django_tables2.utils import A
 from django_tables2.columns import JSONColumn
 from .models import *
 from django.utils.safestring import mark_safe
+from django.shortcuts import get_object_or_404
 
 class SupplierTable(tables.Table):
     class Meta:
@@ -45,14 +46,18 @@ class ProductListTable(tables.Table):
 
 
 class HistoryTable(tables.Table):
-    # customer_name = tables.Column(accessor='customer.name')
+    customer_name = tables.Column(empty_values=())
     product_list = tables.TemplateColumn(template_code='<a href="{% url "cart_list" record.id %}" style="text-decoration: underline;">Check Cart </a>')
     class Meta:
         model = PurchaseHistory
         template_name = "django_tables2/bootstrap.html"
         exclude = ("id",)
         order_by = ("-purchase_datetime",)
+        sequence = ('customer_no','customer_name','...')
     
+    def render_customer_name(self,record):
+        customer = get_object_or_404(Customer, phone_no = record.customer_no)
+        return customer.name
     print("hello")
     
 

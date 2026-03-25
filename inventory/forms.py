@@ -10,7 +10,7 @@ from django.contrib.admin.widgets import AdminDateWidget
 
 from .models import *
 
-
+#Form for login page
 class LoginForm(AuthenticationForm):
 
     captcha = CaptchaField()
@@ -25,6 +25,8 @@ class LoginForm(AuthenticationForm):
             'captcha',
             Submit('submit', 'Log In', css_class='btn-success') # Customize the submit button
         )
+
+#Form for adding and editing supplier details
 class SupplierForm(forms.ModelForm):
 
     class Meta:
@@ -56,17 +58,26 @@ class SupplierForm(forms.ModelForm):
             ),
             Submit('submit','Submit'))
         
-        
+#Form of replenishing stock of any item        
 class StockForm(forms.Form):
     amount = forms.IntegerField(
             label = "How much are you adding?",
             required = True,
-            widget=forms.TextInput(attrs={'style':'max-width: 50px;'})
+            widget=forms.TextInput(attrs={'style':'max-width: 70px;'})
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    
+
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('amount')
+        if amount < 0:
+            self.add_error('amount','Should be a positive number or zero')
+        return cleaned_data
+
+
+#Form for searching any product to add to cart in billing page   
 class SearchForm(forms.ModelForm):
     class Meta:
         model = Cart
@@ -84,29 +95,28 @@ class SearchForm(forms.ModelForm):
         )
         self.fields['item'].required = True
         
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     item = cleaned_data.get('item')
-    #     supplier = cleaned_data.get('supplier')
-    #     if item and Cart.objects.get(item=item):
-    #         if supplier and Cart.objects.get(supplier=supplier):
-    #             raise forms.ValidationError("Already there")
-    #     return cleaned_data
+    def clean(self):
+        cleaned_data = super().clean()
+        item = cleaned_data.get('item')
+        supplier = cleaned_data.get('supplier')
+        if item and Cart.objects.filter(item=item).exists():
+            if supplier and Cart.objects.filter(supplier=supplier).exists():
+                raise forms.ValidationError("Already there")
+        return cleaned_data
 
-class DateInput(forms.DateInput):
-    input_type = 'date'
 
-    def format_value(self, value):
-        return value.isoformat() if value is not None and hasattr(value, "isoformat") else ""
+# class DateInput(forms.DateInput):
+#     input_type = 'date'
 
+#     def format_value(self, value):
+#         return value.isoformat() if value is not None and hasattr(value, "isoformat") else ""
+
+#Form for adding or editing a product in inventory catalogue 
 class ItemForm(forms.ModelForm):
 
     class Meta:
         model = StockItems
         fields = '__all__'
-        # widget = { 
-        #     'initial_date' : forms.DateInput(attrs={'class':'form-control', 'type':'date'}),
-        # }
         
 
     def __init__(self, *args, **kwargs):
@@ -146,8 +156,39 @@ class ItemForm(forms.ModelForm):
                 'type':'date',
                 
             })
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        type = cleaned_data.get('item_type')
+        supplier = cleaned_data.get('supplier')
+        stock = cleaned_data.get('stock')
+        quantity = cleaned_data.get('quantity')
+        cost = cleaned_data.get('cost')
 
+        if not name:
+            self.add_error('name','Name should not be empty')
+        if not type:
+            self.add_error('item_type','Type shoud not be empty')
+        if not supplier:
+            self.add_error('supplier','Supplier should not be empty')
+        
+        if not stock:
+            self.add_error('stock','Stock should not be empty')
+        elif stock < 0:
+            self.add_error('stock','Stock should be a positive number')
+        
+        if not quantity:
+            self.add_error('quantity', 'Quantity should not be empty')
+        
+        if not cost:
+            self.add_error('cost','Cost should not be empty')
+        elif cost < 0:
+            self.add_error('cost','Cost should be a positive number')
 
+        return cleaned_data
+
+#Form for submitting phone number in billing page for checkout
 class PhoneForm(forms.Form):
 
     phone_no = forms.IntegerField(required=False)
@@ -169,7 +210,8 @@ class PhoneForm(forms.Form):
         elif not Customer.objects.filter(phone_no = phone_no).exists():
             self.add_error('phone_no','There is no customer with this phone number, add new')
         return cleaned_data
-    
+
+#Form for adding or editing customer details    
 class CustomerForm(forms.ModelForm):
 
     class Meta:
@@ -178,32 +220,5 @@ class CustomerForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
-    
-
-    
-
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     name = cleaned_data.get('name')
-    #     type = cleaned_data.get('type')
-    #     supplier = cleaned_data.get('supplier')
-    #     stock = cleaned_data.get('stock')
-    #     quantity = cleaned_data.get('quantity')
-    #     cost = cleaned_data.get('cost')
-
-    #     if not name:
-    #         self.add_error('name','Name should not be empty')
-    #     if not type:
-    #         self.add_error('type','Type shoud not be empty')
-    #     if not supplier:
-    #         self.add_error('supplier','Supplier should not be empty')
-    #     if not stock:
-    #         self.add_error('stock','Stock should not be empty')
-    #     if not quantity:
-    #         self.add_error('quantity', 'Quantity should not be empty')
-    #     if not cost:
-    #         self.add_error('cost','Cost should not be empty')
-    #     return cleaned_data
         
         

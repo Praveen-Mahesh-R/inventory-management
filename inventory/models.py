@@ -39,14 +39,14 @@ class ItemType(Model):
 # Database of all items in the inventory catalogue
 class StockItems(Model):
     
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, blank=True, null=True)
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, blank=True, null=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
-    stock = models.IntegerField(null=True, verbose_name="Stock Units")
-    quantity = models.CharField(max_length=20, verbose_name="Quantity(Per Unit)")
-    cost = models.IntegerField(null=True, verbose_name="Cost(Per Unit)")
-    initial_date = models.DateField(default=date.today)
-    restock_date = models.DateField(default=date.today)
+    stock = models.IntegerField(blank=True, null=True, verbose_name="Stock Units")
+    quantity = models.CharField(max_length=20, verbose_name="Quantity(Per Unit)", blank=True, null=True)
+    cost = models.IntegerField(blank=True, null=True, verbose_name="Cost(Per Unit)")
+    initial_date = models.DateField(default=date.today, blank=True, null=True)
+    restock_date = models.DateField(default=date.today, blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
 
     
@@ -92,8 +92,10 @@ class Customer(Model):
     name = models.CharField(max_length=100)
     phone_no = models.IntegerField(unique=True,
         validators=[
-            MinValueValidator(1000000000),
-            MaxValueValidator(9999999999)
+            MinValueValidator(1000000000,
+                              message="Enter correct phone number"),
+            MaxValueValidator(9999999999,
+                              message="Enter correct phone number")
         ])
 
     def __str__(self):
