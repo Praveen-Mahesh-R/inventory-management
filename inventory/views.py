@@ -10,6 +10,7 @@ from django.db.models import Sum
 from django.db import IntegrityError
 from datetime import date
 from json2html import *
+from django_tables2 import RequestConfig
 
 
 #login view
@@ -45,6 +46,8 @@ def home(request):
 @login_required
 def supplier_list(request):
     supplier_table = SupplierTable(Supplier.objects.all())
+    supplier_table.paginate(page=request.GET.get("page", 1), per_page=10)
+    # RequestConfig(request).configure(supplier_table)
     return render(request, "inventory/supplier_list.html",{"supplier_table":supplier_table,})
 
 #Table of items (including deleted items)
@@ -56,7 +59,7 @@ def stock_list(request,type, bool_int = 0):
     else:
         excluded_columns = ('restore',)
     stock_table = StockTable(StockItems.objects.filter(item_type__code__contains = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
-    
+    stock_table.paginate(page=request.GET.get("page", 1), per_page=5)
         
     return render(request, "inventory/stock_list.html",{"stock_table":stock_table, "type":type})
 
@@ -64,7 +67,7 @@ def stock_list(request,type, bool_int = 0):
 @login_required
 def history_list(request):
     history_table = HistoryTable(PurchaseHistory.objects.all())
-    
+    history_table.paginate(page=request.GET.get("page", 1), per_page=5)
     return render(request, "inventory/history_list.html",{"history_table":history_table,})
 
 #Table of past purchase history items (accessed through the above table)
@@ -72,7 +75,6 @@ def history_list(request):
 def cart_list(request,pk):
     obj = get_object_or_404(PurchaseHistory,pk=pk)
     product = zip(obj.product_list['product_name'],obj.product_list['product_unit'],obj.product_list['product_price'])
-    print(obj.product_list['product_name'])
     context = {
         'product':product,
         'total':obj.total_cost
@@ -83,6 +85,7 @@ def cart_list(request,pk):
 @login_required
 def customer_list(request):
     customer_table = CustomerTable(Customer.objects.all())
+    customer_table.paginate(page=request.GET.get("page", 1), per_page=2)
     return render(request, "inventory/customer_list.html",{"customer_table":customer_table,})
 
 
@@ -101,7 +104,6 @@ def new_item_add(request):
                 item.restock_date = date.today()
             item.save()
             return redirect('stock_list', type = item.item_type.code)
-        print(form.is_valid())
     else:
         form = ItemForm()
     return render(request, "inventory/new_item_add.html",{'form': form})
@@ -117,15 +119,12 @@ def item_edit(request, pk):
     item = get_object_or_404(StockItems, pk=pk)
     if request.method == "POST":
         form = ItemForm(request.POST, instance=item)
-        print("Hi")
         if form.is_valid():
             item = form.save(commit=False)
             if item.initial_date is None:
                 item.initial_date = date.today()
             item.save()
-            print("Hello")
             return redirect('stock_list', type = item.item_type.code)
-        print(request.POST)
     else:
         form = ItemForm(instance=item)
     return render(request, "inventory/item_edit.html",{'form': form})
@@ -215,13 +214,12 @@ def billing(request,):
                 item = form.save(commit=False)
                 supplier = item.item.supplier
                 stock = StockItems.objects.get(name=item.item, supplier = supplier)
-                price = stock.cost
+                price = stock.mrp
                 item.price = item.total_price = price
                 try:
                     item.save()
                 except IntegrityError:
                     form.add_error('item','Already there')
-                    print("Already there ---------------------------")
                 return redirect('billing',)
         else:
             form = SearchForm()
@@ -235,15 +233,15 @@ def billing(request,):
                     cart_units = cart.units
                     
                     stock_list = get_object_or_404(StockItems, pk = cart.item.pk)
+                    print(stock_list.pk)
                     if stock_list.stock < cart_units:
                         messages.warning(request, "Not Enough Stock")
                         return redirect('billing')
-                    print(cart.item)
                     name_list.append(cart.item.name)
                     unit_list.append(cart.units)
                     price_list.append(cart.price)
                     stock_list.stock = stock_list.stock - cart_units
-
+                    stock_list.save()
                 customer = get_object_or_404(Customer, phone_no = cust_form['phone_no'])
                 json_data = {
                     "product_name":name_list,
@@ -257,7 +255,7 @@ def billing(request,):
                     total_cost = total_cost
                     
                 )
-                stock_list.save()
+                
                 messages.success(request,"Purchase Successfull!!")
                 return redirect('cart_list', pk=PurchaseHistory.objects.last().pk)
         else:
@@ -265,7 +263,6 @@ def billing(request,):
     else:        
         form = SearchForm()
         cform = PhoneForm()
-    print(cform.errors)
     cart_table = cartTable(Cart.objects.all())
     total_cost = Cart.objects.aggregate(Sum('total_price'))
     

@@ -21,7 +21,14 @@ class City(Model):
 
 # Database of all suppliers
 class Supplier(Model):
-    name = models.CharField(unique=True ,max_length=100)
+    name = models.CharField(unique=True ,max_length=100, blank=True, null=True)
+    phone_no = models.IntegerField(unique=True, blank=True, null=True,
+        validators=[
+            MinValueValidator(1000000000,
+                              message="Enter correct phone number"),
+            MaxValueValidator(9999999999,
+                              message="Enter correct phone number")
+        ])
     state = models.ForeignKey(State, on_delete=models.CASCADE, blank=True, null=True)
     city = models.ForeignKey(City, on_delete=models.CASCADE, blank=True, null=True)
     def __str__(self):
@@ -44,7 +51,8 @@ class StockItems(Model):
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
     stock = models.IntegerField(blank=True, null=True, verbose_name="Stock Units")
     quantity = models.CharField(max_length=20, verbose_name="Quantity(Per Unit)", blank=True, null=True)
-    cost = models.IntegerField(blank=True, null=True, verbose_name="Cost(Per Unit)")
+    cost_price = models.IntegerField(blank=True, null=True, verbose_name="Cost Price")
+    mrp = models.IntegerField(blank=True, null=True, verbose_name="MRP")
     initial_date = models.DateField(default=date.today, blank=True, null=True)
     restock_date = models.DateField(default=date.today, blank=True, null=True)
     is_deleted = models.BooleanField(default=False)

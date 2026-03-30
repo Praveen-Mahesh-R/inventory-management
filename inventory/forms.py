@@ -38,25 +38,41 @@ class SupplierForm(forms.ModelForm):
         self.fields['city'].queryset = City.objects.none()
 
         if 'state' in self.data:
-            print("hello")
             try:
                 state_id = int(self.data.get('state'))
                 self.fields['city'].queryset = City.objects.filter(state_id=state_id).order_by('name')
             except (ValueError, TypeError):
                 pass  
         elif self.instance.pk:
-            print("hello")
             self.fields['city'].queryset = self.instance.state.city_set.order_by('name')
         
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            'name',
+            Row(
+                Column('name', css_class='form-group col-md-6 mb-0'),
+                Column('phone_no', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
             Row(
                 Column('state', css_class='form-group col-md-6 mb-0'),
                 Column('city', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
             Submit('submit','Submit'))
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        state = cleaned_data.get('state')
+        city = cleaned_data.get('city')
+
+        if not name:
+            self.add_error('name','Name should not be empty')
+        if not state:
+            self.add_error('state','State should not be empty')
+        if not city:
+            self.add_error('city','City should not be empty')
+        return cleaned_data
         
 #Form of replenishing stock of any item        
 class StockForm(forms.Form):
@@ -134,7 +150,7 @@ class ItemForm(forms.ModelForm):
                 Column('quantity', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
-            'cost',
+            'mrp',
             Row(
                 Column('initial_date', css_class='form-group col-md-6 mb-0'),
                 Column('restock_date', css_class='form-group col-md-6 mb-0'),
@@ -164,7 +180,7 @@ class ItemForm(forms.ModelForm):
         supplier = cleaned_data.get('supplier')
         stock = cleaned_data.get('stock')
         quantity = cleaned_data.get('quantity')
-        cost = cleaned_data.get('cost')
+        mrp = cleaned_data.get('mrp')
 
         if not name:
             self.add_error('name','Name should not be empty')
@@ -181,10 +197,10 @@ class ItemForm(forms.ModelForm):
         if not quantity:
             self.add_error('quantity', 'Quantity should not be empty')
         
-        if not cost:
-            self.add_error('cost','Cost should not be empty')
-        elif cost < 0:
-            self.add_error('cost','Cost should be a positive number')
+        if not mrp:
+            self.add_error('mrp','MRP should not be empty')
+        elif mrp < 0:
+            self.add_error('mrp','MRP should be a positive number')
 
         return cleaned_data
 

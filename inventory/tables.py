@@ -39,10 +39,10 @@ class cartTable(tables.Table):
         self.columns['plus'].column.attrs = {"td":{"style" : "width:1%;" }}
         self.columns['minus'].column.attrs = {"td":{"style" : "width:1%;" }}
 
-class ProductListTable(tables.Table):
-    product_name = tables.Column()
-    product_unit = tables.Column()
-    product_price = tables.Column()
+# class ProductListTable(tables.Table):
+#     product_name = tables.Column()
+#     product_unit = tables.Column()
+#     product_price = tables.Column()
 
 
 class HistoryTable(tables.Table):
@@ -50,7 +50,7 @@ class HistoryTable(tables.Table):
     product_list = tables.TemplateColumn(template_code='<a href="{% url "cart_list" record.id %}" style="text-decoration: underline;">Check Cart </a>')
     class Meta:
         model = PurchaseHistory
-        template_name = "django_tables2/bootstrap.html"
+        template_name = "django_tables2/bootstrap4.html"
         exclude = ("id",)
         order_by = ("-purchase_datetime",)
         sequence = ('customer_no','customer_name','...')
@@ -58,6 +58,6 @@ class HistoryTable(tables.Table):
     def render_customer_name(self,record):
         customer = get_object_or_404(Customer, phone_no = record.customer_no)
         return customer.name
-    print("hello")
+    
     
 
