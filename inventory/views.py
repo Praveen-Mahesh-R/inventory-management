@@ -52,16 +52,20 @@ def supplier_list(request):
 
 #Table of items (including deleted items)
 @login_required
-def stock_list(request,type, bool_int = 0):
+def stock_list(request,type = "all", bool_int = 0):
     excluded_columns = ()
     if bool_int:
         excluded_columns = ('manage',)
     else:
         excluded_columns = ('restore',)
-    stock_table = StockTable(StockItems.objects.filter(item_type__code__contains = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
-    stock_table.paginate(page=request.GET.get("page", 1), per_page=5)
-        
-    return render(request, "inventory/stock_list.html",{"stock_table":stock_table, "type":type})
+    if type != "all":
+        stock_table = StockTable(StockItems.objects.filter(item_type__code__contains = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
+    else:
+        stock_table = StockTable(StockItems.objects.filter(is_deleted = bool(bool_int)),exclude=excluded_columns)
+    stock_table.paginate(page=request.GET.get("page", 1), per_page=10)
+    typelist = ItemType.objects.all().order_by('category')  
+    category = ItemTypeCategory.objects.all().order_by('pk') 
+    return render(request, "inventory/stock_list.html",{"stock_table":stock_table, "typelist":typelist, "type":type, "categories":category})
 
 #Table of past purchase history
 @login_required

@@ -34,10 +34,18 @@ class Supplier(Model):
     def __str__(self):
         return self.name
 
-# Store Type of an item
+# Store category of each item types
+class ItemTypeCategory(Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+# Store Type of an item       
 class ItemType(Model):
     code = models.CharField(max_length=2, unique=True)
     name = models.CharField(max_length=100)
+    category = models.ForeignKey(ItemTypeCategory, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.name

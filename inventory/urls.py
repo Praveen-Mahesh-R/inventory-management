@@ -5,9 +5,12 @@ from . import views
 urlpatterns = [
     path('', views.home, name='home'),
     path('supermart/supplier', views.supplier_list, name="supplier_list"),
+    # path('supermart/s', views.product, name="products"),
+    path('supermart/stock/', views.stock_list, name="stock_list"),
     path('supermart/stock/<str:type>', views.stock_list, name="stock_list"),
     path('supermart/purchase_history',views.history_list, name="history_list"),
     path('supermart/customer', views.customer_list, name="customer_list"),
+    path('supermart/stock/<int:bool_int>', views.stock_list, name="stock_list"),
     path('supermart/stock/<str:type>/<int:bool_int>', views.stock_list, name="stock_list"),
 
     path('supermart/new_item_add/', views.new_item_add, name="new_item_add"),

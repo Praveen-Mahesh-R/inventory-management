@@ -3,34 +3,60 @@
 
 {% block content %}
 
-<h4 style="float: left;">Items:</h4>
+
+<!-- </div> -->
+<style>
+    #product {
+  background-color: #04AA6D;
+  color: white;
+}
+</style>
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+
+</style>
+
+
+<div class="sidebar">
+  <a href="{%url 'stock_list' %}">All</a>
+  {% for category in categories %}
+  <p></p>
+  <button class="dropdown-btn">{{ category }}
+    <i class="fa fa-caret-down"></i>
+  </button>
+  <div class="dropdown-container">
+  {% for type in typelist %} 
+  {% if type.category == category %}
+  <a href="{% url 'stock_list' type=type.code %}">{{ type }}</a>
+  {% endif %}
+  {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+
+<div class="content">
+  <h4 style="float: left;">Items:</h4>
 <a href="{% url 'stock_list' type=type bool_int=1 %}" class="btn btn-secondary" style="float: right;">Bin</a>
 {% render_table stock_table %}
+</div>
 
+<script>
+/* Loop through all dropdown buttons to toggle between hiding and showing its dropdown content - This allows the user to have multiple dropdowns without any conflict */
+var dropdown = document.getElementsByClassName("dropdown-btn");
+var i;
 
-
-{% if type == 'fr' or type == 'gr' or type == 'dr' or type == 'cn' %}
-<style>
-    #three {
-  background-color: #04AA6D;
-  color: white;
+for (i = 0; i < dropdown.length; i++) {
+  dropdown[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var dropdownContent = this.nextElementSibling;
+    if (dropdownContent.style.display === "block") {
+      dropdownContent.style.display = "none";
+    } else {
+      dropdownContent.style.display = "block";
+    }
+  });
 }
-</style>
-{% elif type == 'sn' or type == 'bv' %}
-<style>
-    #four {
-  background-color: #04AA6D;
-  color: white;
-}
-</style>
-{% else %}
-<style>
-    #five {
-  background-color: #04AA6D;
-  color: white;
-}
-</style>
-{% endif %}
-
-
+</script>
 {% endblock %}

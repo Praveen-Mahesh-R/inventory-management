@@ -1,5 +1,5 @@
 {# tutorial/templates/tutorial/people.html #}
-
+{% load nav_tags %}
 {% load static %}
 <!doctype html>
 <html>
@@ -32,7 +32,8 @@
             <a id="one" href="{%url 'home' %}">Home</a>
             {% if user.is_authenticated %}
             <a id="two" href="{%url 'supplier_list' %}">Suppliers</a>
-            <div class="stock-list">
+            <a id="product" href="{%url 'stock_list' %}">Products</a>
+            <!-- <div class="stock-list">
                 <button id="three" class="dropbtn">Grocery 
                 </button>
                 <div class="dropdown-content">
@@ -58,7 +59,7 @@
                 <a href="{% url 'stock_list' type='pc' %}">Personal Care</a>
                 <a href="{% url 'stock_list' type='hs' %}">Household Supplies</a>
                 <a href="{% url 'stock_list' type='st' %}">Stationery</a>
-                </div>
+                </div> -->
             </div>
             <a id="eight" href="{%url 'history_list' %}">Purchase History</a>
             <a id="nine" href="{%url 'customer_list' %}">Customers</a>
