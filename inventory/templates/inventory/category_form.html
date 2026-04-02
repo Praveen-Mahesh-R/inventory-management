@@ -1,0 +1,17 @@
+{% extends 'inventory/base.html' %}
+
+
+{% block content %}
+
+{% if form.instance.pk is None %}
+<h4 style="padding: 10px;">Add :</h4>
+{% else %}
+<h4 style="padding: 10px;">Edit :</h4>
+{% endif %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" style="float: left;" class="save btn btn-success">Submit</button>
+</form>
+
+{% endblock %}

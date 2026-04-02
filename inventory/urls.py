@@ -31,6 +31,14 @@ urlpatterns = [
     path('supermart/new_customer/', views.new_customer, name="new_customer"),
     path('supermart/edit_customer/<int:pk>', views.edit_customer, name="edit_customer"),
     
+    path('supermart/manage_category',views.manage_category,name="manage_category"),
+
+    path('supermart/add_main_category',views.add_main_category,name="add_main_category"),
+    path('supermart/edit_main_category/<int:pk>',views.edit_main_category,name="edit_main_category"),
+    
+    path('supermart/add_sub_category',views.add_sub_category,name="add_sub_category"),
+    path('supermart/edit_sub_category/<int:pk>',views.edit_sub_category,name="edit_sub_category"),
+
     path('ajax/load-cities/', views.load_cities, name='ajax_load_cities'),
     
     path('supermart/logout/', views.logout_check, name="logout_check"),

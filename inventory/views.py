@@ -272,6 +272,62 @@ def billing(request,):
     
     return render(request, "inventory/billing_page.html",{'form':form, 'cform':cform, 'cart_table':cart_table, 'total_cost': total_cost,})
 
+@login_required
+def manage_category(request):
+    typelist = ItemType.objects.all().order_by('category')  
+    category = ItemTypeCategory.objects.all().order_by('pk')
+    return render(request, "inventory/manage_category.html",{"categories":category, "typelist":typelist})
+
+@login_required
+def add_main_category(request):
+    if request.method == "POST":
+        form = MainCategoryForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            return redirect('manage_category')
+    else:
+        form = MainCategoryForm()
+    return render(request, "inventory/category_form.html",{'form': form})
+
+@login_required
+def edit_main_category(request,pk):
+    obj = get_object_or_404(ItemTypeCategory,pk=pk)
+    if request.method == "POST":
+        form = MainCategoryForm(request.POST, instance = obj)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            return redirect('manage_category')
+    else:
+        form = MainCategoryForm(instance = obj)
+    return render(request, "inventory/category_form.html",{'form': form})
+
+@login_required
+def add_sub_category(request):
+    if request.method == "POST":
+        form = SubCategoryForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            return redirect('manage_category')
+    else:
+        form = SubCategoryForm()
+    return render(request, "inventory/category_form.html",{'form': form})
+
+@login_required
+def edit_sub_category(request,pk):
+    obj = get_object_or_404(ItemType,pk=pk)
+    if request.method == "POST":
+        form = SubCategoryForm(request.POST, instance = obj)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.save()
+            return redirect('manage_category')
+    else:
+        form = SubCategoryForm(instance = obj)
+    return render(request, "inventory/category_form.html",{'form': form})
+
 
 #Page asking confirmation on deleting an item from catalogue
 @login_required

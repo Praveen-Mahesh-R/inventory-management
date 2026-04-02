@@ -18,13 +18,12 @@
 
 </style>
 
-
+<div>
 <div class="sidebar">
   <a href="{%url 'stock_list' %}">All</a>
   {% for category in categories %}
   <p></p>
   <button class="dropdown-btn">{{ category }}
-    <i class="fa fa-caret-down"></i>
   </button>
   <div class="dropdown-container">
   {% for type in typelist %} 
@@ -34,12 +33,23 @@
   {% endfor %}
   </div>
   {% endfor %}
+  <hr class="solid" style="color: white;">
+  <button class="dropdown-btn">Manage
+  </button>
+  <div class="dropdown-container">
+  <a href="{% url 'manage_category' %}">Manage Categories</a>
+  <a href="{% url 'new_item_add' %}">Add New Product</a>
+  <a href="{% url 'stock_list' type=type bool_int=1 %}">Recycle Bin</a>
+  </div>
+</div>
+<!-- <a href="{% url 'manage_category' %}" class="btn btn-secondary" style="position: absolute; bottom: 0; float: left;">Manage Categories</a> -->
 </div>
 
 <div class="content">
   <h4 style="float: left;">Items:</h4>
-<a href="{% url 'stock_list' type=type bool_int=1 %}" class="btn btn-secondary" style="float: right;">Bin</a>
-{% render_table stock_table %}
+  <!-- <a href="{% url 'stock_list' type=type bool_int=1 %}" class="btn btn-secondary" style="float: right;">Bin</a>
+  <a href="{% url 'new_item_add' %}" class="btn btn-success" style="float: right; margin-right: 4px;">Add New Product</a> -->
+  {% render_table stock_table %}
 </div>
 
 <script>

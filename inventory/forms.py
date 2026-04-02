@@ -238,3 +238,20 @@ class CustomerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         
+class MainCategoryForm(forms.ModelForm):
+
+    class Meta:
+        model = ItemTypeCategory
+        fields = ('name',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+class SubCategoryForm(forms.ModelForm):
+
+    class Meta:
+        model = ItemType
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
