@@ -1,0 +1,38 @@
+{% extends 'inventory/base.html' %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+{% load static %}
+{% block content %}
+
+<div class="left-side" style="float: left; width: 30%; padding: 10px;">
+<div class="add-to-cart">
+        {% render_table product_table %}
+</div>
+<hr style="border: 1px dashed;">
+<div class="grand-total">
+<p>Total Cost: {{ total_cost.total_price__sum }}</p>
+</div>
+<hr style="border: 1px dashed;">
+</div>
+<div class="right-side" style="float: left; width: 70%; padding: 10px;">
+<h5>Bill Table:</h5>
+
+{% render_table cart_table %}
+
+<a href="{% url 'clear_table' %}" class="btn btn-secondary" style="float: right;">Clear</a>
+</div>
+
+
+<style>
+    #six {
+  background-color: #04AA6D;
+  color: white;
+}
+</style>
+
+
+
+
+
+
+{% endblock %}

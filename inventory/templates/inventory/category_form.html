@@ -4,10 +4,19 @@
 {% block content %}
 
 {% if form.instance.pk is None %}
-<h4 style="padding: 10px;">Add :</h4>
+{% if form.code.label %}
+<h4 style="padding: 10px;">Add Sub Category:</h4>
 {% else %}
-<h4 style="padding: 10px;">Edit :</h4>
+<h4 style="padding: 10px;">Add Main Category:</h4>
 {% endif %}
+{% else %}
+{% if form.code.label %}
+<h4 style="padding: 10px;">Edit Sub Category:</h4>
+{% else %}
+<h4 style="padding: 10px;">Edit Main Category:</h4>
+{% endif %}
+{% endif %}
+<p>{{ form.code.label }}</p>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}

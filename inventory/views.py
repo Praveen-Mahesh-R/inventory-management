@@ -11,7 +11,7 @@ from django.db import IntegrityError
 from datetime import date
 from json2html import *
 from django_tables2 import RequestConfig
-
+from django.db.models import Q
 
 #login view
 def user_login(request):
@@ -46,8 +46,13 @@ def home(request):
 @login_required
 def supplier_list(request):
     supplier_table = SupplierTable(Supplier.objects.all())
+    query = request.GET.get("q", None)
+    if query:
+        supplier_table = SupplierTable(Supplier.objects.filter(
+            Q(name__icontains = query)|Q(city__name__icontains = query)|Q(state__name__icontains = query)|Q(phone_no__icontains = query)
+        ))
+    RequestConfig(request).configure(supplier_table)
     supplier_table.paginate(page=request.GET.get("page", 1), per_page=10)
-    # RequestConfig(request).configure(supplier_table)
     return render(request, "inventory/supplier_list.html",{"supplier_table":supplier_table,})
 
 #Table of items (including deleted items)
@@ -58,10 +63,21 @@ def stock_list(request,type = "all", bool_int = 0):
         excluded_columns = ('manage',)
     else:
         excluded_columns = ('restore',)
+    query = request.GET.get("q", None)
     if type != "all":
         stock_table = StockTable(StockItems.objects.filter(item_type__code__contains = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
+        if query:
+            stock_table = StockTable(StockItems.objects.filter(
+                Q(name__icontains = query)|Q(supplier__name__icontains = query)
+            ).filter(item_type__code__contains = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
+    
     else:
         stock_table = StockTable(StockItems.objects.filter(is_deleted = bool(bool_int)),exclude=excluded_columns)
+        if query:
+            stock_table = StockTable(StockItems.objects.filter(
+                Q(name__icontains = query)|Q(supplier__name__icontains = query)
+            ).filter(is_deleted = bool(bool_int)),exclude=excluded_columns)
+    RequestConfig(request).configure(stock_table)
     stock_table.paginate(page=request.GET.get("page", 1), per_page=10)
     typelist = ItemType.objects.all().order_by('category')  
     category = ItemTypeCategory.objects.all().order_by('pk') 
@@ -89,6 +105,12 @@ def cart_list(request,pk):
 @login_required
 def customer_list(request):
     customer_table = CustomerTable(Customer.objects.all())
+    query = request.GET.get("q", None)
+    if query:
+        customer_table = CustomerTable(Customer.objects.filter(
+            Q(name__icontains = query)|Q(phone_no__icontains = query)
+        ))
+    RequestConfig(request).configure(customer_table)
     customer_table.paginate(page=request.GET.get("page", 1), per_page=2)
     return render(request, "inventory/customer_list.html",{"customer_table":customer_table,})
 
@@ -206,10 +228,9 @@ def edit_customer(request, pk):
 
 #Other views
 
-#Billing page to add items to cart and purchasing them
+#Billing page to add items to cart and purchasing them (for customers)
 @login_required
 def billing(request,):
-    items = StockItems.objects.all()
     if request.method == "POST":
         form = SearchForm(request.POST)
         cform = PhoneForm(request.POST)
@@ -271,6 +292,167 @@ def billing(request,):
     total_cost = Cart.objects.aggregate(Sum('total_price'))
     
     return render(request, "inventory/billing_page.html",{'form':form, 'cform':cform, 'cart_table':cart_table, 'total_cost': total_cost,})
+
+#Deletes all items in cart table
+@login_required
+def clear_table(request):
+    Cart.objects.all().delete()
+    return redirect('billing')
+
+#Adds one more unit of an item added into cart
+@login_required
+def plus_units(request, pk):
+    obj = get_object_or_404(Cart,pk=pk)
+    obj.units = obj.units + 1
+    obj.total_price =  obj.price * obj.units
+    obj.save()
+    return redirect('billing')
+
+#Subtracts one unit from item added to cart if the unit count is more than 1, else deletes the item from cart
+@login_required
+def minus_units(request, pk):
+    obj = get_object_or_404(Cart,pk=pk)
+    if obj.units > 1:
+        obj.units = obj.units - 1
+        obj.total_price =  obj.price * obj.units
+        obj.save()
+    else:
+        Cart.objects.filter(pk=pk).delete()
+    return redirect('billing')
+
+@login_required
+def supplier_restock(request, supplier):
+    product_table = SupplierCatalogueTable(StockItems.objects.filter(supplier__name__contains = supplier))
+    cart_table = SupplierCartTable(SupplierCart.objects.filter(supplier = supplier))
+    total_cost = SupplierCart.objects.aggregate(Sum('total_price'))
+    # obj = 
+    # if request.method == "POST":
+    #     form = CountForm(request.POST,request.FILES)
+    #     if form.is_valid():
+    #         item = form.cleaned_data
+    #         item.save()
+    #         return redirect('supplier_restock')
+    # else:
+    #     form = CountForm()
+    form = CountForm()
+    return render(request, "inventory/supplier_restock.html",{'product_table':product_table, 'cart_table':cart_table, 'total_cost': total_cost, 'form':form})
+
+def add_to_cart(request,pk):
+    obj = get_object_or_404(StockItems,pk=pk)
+    SupplierCart.objects.create( 
+        item_id = pk,
+        price = obj.cost_price,
+        total_price = obj.cost_price,
+        supplier = obj.supplier.name
+    )
+    return redirect('supplier_restock', supplier=obj.supplier.name)
+
+def units_amount(request, pk):
+    obj = get_object_or_404(SupplierCart,pk=pk)
+    supplier = obj.supplier
+    if request.method == "POST":
+        form = CountForm(request.POST,request.FILES)
+        if form.is_valid():
+            item = form.cleaned_data
+            obj.units = item['units']
+            obj.save()
+            return redirect('supplier_restock', supplier = supplier)
+    else:
+        form = CountForm()
+    return redirect('supplier_restock', supplier = supplier)
+
+# @login_required
+# def supplier_billing(request):
+#     if request.method == "POST":
+#         form = SearchSupplyForm(request.POST)
+#         cform = PhoneForm(request.POST)
+#         if 'submit_item' in request.POST:    
+#             if form.is_valid():
+#                 item = form.save(commit=False)
+#                 supplier = item.item.supplier
+#                 stock = StockItems.objects.get(name=item.item, supplier = supplier)
+#                 price = stock.mrp
+#                 item.price = item.total_price = price
+#                 try:
+#                     item.save()
+#                 except IntegrityError:
+#                     form.add_error('item','Already there')
+#                 return redirect('billing',)
+#         else:
+#             form = SearchForm()
+#         # if 'submit_customer' in request.POST:  
+#         #     if cform.is_valid():
+#         #         cust_form = cform.cleaned_data
+#         #         name_list = []
+#         #         unit_list = []
+#         #         price_list = []
+#         #         for cart in Cart.objects.all():
+#         #             cart_units = cart.units
+                    
+#         #             stock_list = get_object_or_404(StockItems, pk = cart.item.pk)
+#         #             print(stock_list.pk)
+#         #             if stock_list.stock < cart_units:
+#         #                 messages.warning(request, "Not Enough Stock")
+#         #                 return redirect('billing')
+#         #             name_list.append(cart.item.name)
+#         #             unit_list.append(cart.units)
+#         #             price_list.append(cart.price)
+#         #             stock_list.stock = stock_list.stock - cart_units
+#         #             stock_list.save()
+#         #         customer = get_object_or_404(Customer, phone_no = cust_form['phone_no'])
+#         #         json_data = {
+#         #             "product_name":name_list,
+#         #             "product_unit":unit_list,
+#         #             "product_price":price_list
+#         #         }
+#         #         total_cost = Cart.objects.aggregate(Sum('total_price'))['total_price__sum']
+#         #         PurchaseHistory.objects.create(
+#         #             customer_no = customer.phone_no,
+#         #             product_list = json_data,
+#         #             total_cost = total_cost
+                    
+#         #         )
+                
+#         #         messages.success(request,"Purchase Successfull!!")
+#         #         return redirect('cart_list', pk=PurchaseHistory.objects.last().pk)
+#         # else:
+#         #     cform = PhoneForm()
+#     else:        
+#         form = SearchSupplyForm()
+#     cart_table = cartTable(Cart.objects.all())
+#     total_cost = Cart.objects.aggregate(Sum('total_price'))
+    
+#     return render(request, "inventory/supplier_billing.html",{'form':form, 'cform':cform, 'cart_table':cart_table, 'total_cost': total_cost,})
+
+def supplier_checkout(request,supplier):
+    name_list = []
+    unit_list = []
+    price_list = []
+    for cart in Cart.objects.all():
+        cart_units = cart.units
+        
+        stock_list = get_object_or_404(StockItems, pk = cart.item.pk)
+        print(stock_list.pk)
+        name_list.append(cart.item.name)
+        unit_list.append(cart.units)
+        price_list.append(cart.price)
+        stock_list.stock = stock_list.stock + cart_units
+        stock_list.save()
+    supplier = get_object_or_404(Supplier, phone_no = supplier)
+    json_data = {
+        "product_name":name_list,
+        "product_unit":unit_list,
+        "product_price":price_list
+    }
+    total_cost = Cart.objects.aggregate(Sum('total_price'))['total_price__sum']
+    SupplierHistory.objects.create(
+        supplier_name = supplier,
+        product_list = json_data,
+        total_cost = total_cost)
+    
+    messages.success(request,"Purchase Successfull!!")
+    return redirect('cart_list', pk=SupplierHistory.objects.last().pk)
+
 
 @login_required
 def manage_category(request):
@@ -357,32 +539,7 @@ def restore(request,pk):
     obj.save()
     return redirect('stock_list', type = type)
     
-#Deletes all items in cart table
-@login_required
-def clear_table(request):
-    Cart.objects.all().delete()
-    return redirect('billing')
 
-#Adds one more unit of an item added into cart
-@login_required
-def plus_units(request, pk):
-    obj = get_object_or_404(Cart,pk=pk)
-    obj.units = obj.units + 1
-    obj.total_price =  obj.price * obj.units
-    obj.save()
-    return redirect('billing')
-
-#Subtracts one unit from item added to cart if the unit count is more than 1, else deletes the item from cart
-@login_required
-def minus_units(request, pk):
-    obj = get_object_or_404(Cart,pk=pk)
-    if obj.units > 1:
-        obj.units = obj.units - 1
-        obj.total_price =  obj.price * obj.units
-        obj.save()
-    else:
-        Cart.objects.filter(pk=pk).delete()
-    return redirect('billing')
 
 #Loads dropdown-list of city based on the state seleted in supplier form
 @login_required

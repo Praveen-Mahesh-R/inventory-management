@@ -9,6 +9,7 @@ class SupplierTable(tables.Table):
     class Meta:
         model = Supplier
         template_name = "django_tables2/bootstrap4.html"
+    buy = tables.TemplateColumn(verbose_name="Buy Stock",template_code='{% load static %}<a href="{% url "supplier_restock" record.name %}"> <img src="{% static \'icons/cart-plus.svg\' %}" </a>', orderable=False)
     edit = tables.TemplateColumn(verbose_name="Edit",template_code='{% load static %}<a href="{% url "edit_supplier" record.id %}"> <img src="{% static \'icons/pencil-square.svg\' %}" </a>', orderable=False)
 
 class StockTable(tables.Table):
@@ -59,5 +60,18 @@ class HistoryTable(tables.Table):
         customer = get_object_or_404(Customer, phone_no = record.customer_no)
         return customer.name
     
-    
 
+class SupplierCartTable(tables.Table):
+    class Meta:
+        model = SupplierCart
+        exclude = ('id','supplier')
+        template_name = "django_tables2/bootstrap.html"
+    count = tables.TemplateColumn(template_name="inventory/count_form.html")
+
+    
+class SupplierCatalogueTable(tables.Table):
+    class Meta:
+        model = StockItems
+        template_name = "django_tables2/bootstrap4.html"
+        fields = ('name','stock','cost_price')
+    plus = tables.TemplateColumn(verbose_name="", template_code='{% load static %}<a href="{% url "add_to_cart" record.id %}"> <img src="{% static \'icons/plus-square.svg\' %}" </a>')

@@ -3,14 +3,17 @@
 
 {% block content %}
 
-<h4>Stock:</h4>
+<h4 style="float: left;">Suppliers:</h4>
+<form action="{% url 'supplier_list' %}" method="get" class="search" style="float: right;">
+        <input name="q" type="text" placeholder="Search...">
+  </form>
 {% render_table supplier_table %}
 <div class="bottom-left-button">
   <a href="{% url 'add_supplier' %}" class="btn btn-success">Add Supplier</a>
 </div>
 
 <style>
-    #two {
+    #supplier {
   background-color: #04AA6D;
   color: white;
 }

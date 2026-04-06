@@ -30,7 +30,7 @@
         <nav class="header-nav">
             <a id="one" href="{%url 'home' %}">Home</a>
             {% if user.is_authenticated %}
-            <a id="two" href="{%url 'supplier_list' %}">Suppliers</a>
+            <a id="supplier" href="{%url 'supplier_list' %}">Suppliers</a>
             <a id="product" href="{%url 'stock_list' %}">Products</a>
             <!-- <div class="stock-list">
                 <button id="three" class="dropbtn">Grocery 
@@ -61,7 +61,7 @@
                 </div> -->
             </div>
             <a id="eight" href="{%url 'history_list' %}">Purchase History</a>
-            <a id="nine" href="{%url 'customer_list' %}">Customers</a>
+            <a id="customer" href="{%url 'customer_list' %}">Customers</a>
             <a id="six" href="{% url 'billing' %}" style="margin-left: auto; margin-right: 0;">Billing</a>
             <a id="seven" href="{% url 'new_item_add' %}" style="margin-left: 0;">Add New Product</a>
             

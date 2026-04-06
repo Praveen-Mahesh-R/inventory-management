@@ -1,0 +1,6 @@
+{% load crispy_forms_tags %}
+
+<form action="{% url 'units_amount' record.id %}" method="post" style="margin: 0%; padding: 0%; display: inline;">
+    {% csrf_token %}
+    {{ form.as_p }}
+</form>

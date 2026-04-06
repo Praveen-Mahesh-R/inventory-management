@@ -119,6 +119,8 @@ class SearchForm(forms.ModelForm):
             if supplier and Cart.objects.filter(supplier=supplier).exists():
                 raise forms.ValidationError("Already there")
         return cleaned_data
+    
+
 
 
 # class DateInput(forms.DateInput):
@@ -150,7 +152,11 @@ class ItemForm(forms.ModelForm):
                 Column('quantity', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
-            'mrp',
+            Row(
+                Column('cost_price', css_class='form-group col-md-6 mb-0'),
+                Column('mrp', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
             Row(
                 Column('initial_date', css_class='form-group col-md-6 mb-0'),
                 Column('restock_date', css_class='form-group col-md-6 mb-0'),
@@ -255,3 +261,50 @@ class SubCategoryForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+class CountForm(forms.Form):
+    units = forms.IntegerField(
+            required = True,
+            label="",
+            validators=[MinValueValidator(1)],
+            widget=forms.NumberInput(attrs={'style':'max-width: 70px;'})
+    )
+
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('units')
+        if not amount:
+            self.add_error('units','Should be a positive number or zero')
+        elif amount < 0:
+            self.add_error('units','Should be a positive number or zero')
+        return cleaned_data
+
+# #Form for searching any product to add to cart in supplier billing page   
+# class SearchSupplyForm(forms.ModelForm):
+#     class Meta:
+#         model = SupplierCart
+#         fields = ('item',)
+#         widget = {
+#             'item': forms.Select(),
+#         }
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.helper = FormHelper()
+#         self.helper.layout = Layout(
+#             'item',
+#             Submit('submit_item','Add Item to Cart')
+#         )
+#         self.fields['item'].required = True
+        
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         item = cleaned_data.get('item')
+#         if item and SupplierCart.objects.filter(item=item).exists():
+#                 raise forms.ValidationError("Already there")
+#         return cleaned_data

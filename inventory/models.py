@@ -117,7 +117,7 @@ class Customer(Model):
     def __str__(self):
         return self.name
 
-# Database of past purchases
+# Database of past customer purchases
 class PurchaseHistory(Model):
     customer_no = models.IntegerField()
     product_list = models.JSONField()
@@ -128,7 +128,34 @@ class PurchaseHistory(Model):
     def __str__(self):
         return str(self.customer_no)
     
+# Database of past stock purchases from suppliers
+class SupplierHistory(Model):
+    supplier_name = models.CharField(max_length=100,)
+    product_list = models.JSONField()
+    total_cost =  models.IntegerField()
+    purchase_datetime = models.DateTimeField(auto_now_add= True)
 
+    
+    def __str__(self):
+        return self.supplier_name
+    
+class SupplierCart(Model):
+
+    
+    item = models.ForeignKey(StockItems, on_delete=models.CASCADE, blank=True, null=True)
+    units = models.IntegerField(default=1,blank=True, null=True)
+    price = models.IntegerField(verbose_name="Price (per unit)")
+    total_price = models.IntegerField()
+    supplier = models.CharField(max_length=100)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['item','supplier'],name='unique_supply_cart')
+        ]
+
+    
+    def __str__(self):
+        return str(self.item)
 
 # class AbstractItems(Model):
 #     name = models.CharField(max_length=100)

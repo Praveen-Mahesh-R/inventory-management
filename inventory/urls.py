@@ -44,9 +44,13 @@ urlpatterns = [
     path('supermart/logout/', views.logout_check, name="logout_check"),
     
     path('supermart/billing/', views.billing, name="billing"),
-   
+    
     path('cart_list/<int:pk>',views.cart_list, name="cart_list"),
     path('clear_table/', views.clear_table, name="clear_table"),
     path('plus_units/<int:pk>', views.plus_units, name="plus_units"),
     path('minus_units/<int:pk>', views.minus_units, name="minus_units"),
+
+    path('supermart/<str:supplier>/restock/', views.supplier_restock, name="supplier_restock"),
+    path('add_to_cart/<int:pk>', views.add_to_cart, name="add_to_cart"),
+    path('units_amount/<int:pk>', views.units_amount, name="units_amount"),
 ]
