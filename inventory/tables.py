@@ -67,7 +67,7 @@ class SupplierCartTable(tables.Table):
         exclude = ('id','supplier')
         template_name = "django_tables2/bootstrap.html"
     count = tables.TemplateColumn(template_name="inventory/count_form.html")
-
+    minus = tables.TemplateColumn(verbose_name="", template_code='{% load static %}<a href="{% url "delete_item" record.id %}"> <img src="{% static \'icons/dash-square.svg\' %}" </a>')
     
 class SupplierCatalogueTable(tables.Table):
     class Meta:
@@ -75,3 +75,13 @@ class SupplierCatalogueTable(tables.Table):
         template_name = "django_tables2/bootstrap4.html"
         fields = ('name','stock','cost_price')
     plus = tables.TemplateColumn(verbose_name="", template_code='{% load static %}<a href="{% url "add_to_cart" record.id %}"> <img src="{% static \'icons/plus-square.svg\' %}" </a>')
+
+
+class SupplyHistoryTable(tables.Table):
+    product_list = tables.TemplateColumn(template_code='<a href="{% url "supply_cart_list" record.id %}" style="text-decoration: underline;">Check Cart </a>')
+    class Meta:
+        model = SupplierHistory
+        template_name = "django_tables2/bootstrap4.html"
+        exclude = ("id",)
+        order_by = ("-purchase_datetime",)
+    

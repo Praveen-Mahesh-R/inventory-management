@@ -18,8 +18,8 @@
 <h5>Bill Table:</h5>
 
 {% render_table cart_table %}
-
-<a href="{% url 'clear_table' %}" class="btn btn-secondary" style="float: right;">Clear</a>
+<a href="{% url 'supplier_checkout' supplier=supplier %}" class="btn btn-success" style="float: left;">Buy</a>
+<a href="{% url 'clear_supply_table' supplier=supplier %}" class="btn btn-secondary" style="float: right;">Clear</a>
 </div>
 
 

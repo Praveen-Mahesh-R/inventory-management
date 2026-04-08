@@ -32,34 +32,6 @@
             {% if user.is_authenticated %}
             <a id="supplier" href="{%url 'supplier_list' %}">Suppliers</a>
             <a id="product" href="{%url 'stock_list' %}">Products</a>
-            <!-- <div class="stock-list">
-                <button id="three" class="dropbtn">Grocery 
-                </button>
-                <div class="dropdown-content">
-                    
-                <a href="{% url 'stock_list' type='fr' %}">Fresh Produce</a>
-                <a href="{% url 'stock_list' type='gr' %}">Grains</a>
-                <a href="{% url 'stock_list' type='dr' %}">Dairy</a>
-                <a href="{% url 'stock_list' type='cn' %}">Condiments</a>
-                </div>
-            </div>
-            <div class="stock-list">
-                <button id="four" class="dropbtn">Consumable
-                </button>
-                <div class="dropdown-content">
-                <a href="{% url 'stock_list' type='sn' %}">Snacks</a>
-                <a href="{% url 'stock_list' type='bv' %}">Beverages</a>
-                </div>
-            </div>
-            <div class="stock-list">
-                <button id="five" class="dropbtn">Non-Consumable 
-                </button>
-                <div class="dropdown-content">
-                <a href="{% url 'stock_list' type='pc' %}">Personal Care</a>
-                <a href="{% url 'stock_list' type='hs' %}">Household Supplies</a>
-                <a href="{% url 'stock_list' type='st' %}">Stationery</a>
-                </div> -->
-            </div>
             <a id="eight" href="{%url 'history_list' %}">Purchase History</a>
             <a id="customer" href="{%url 'customer_list' %}">Customers</a>
             <a id="six" href="{% url 'billing' %}" style="margin-left: auto; margin-right: 0;">Billing</a>

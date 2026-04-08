@@ -88,7 +88,7 @@ class StockItems(Model):
 class Cart(Model):
 
     
-    item = models.ForeignKey(StockItems, on_delete=models.CASCADE, blank=True, null=True)
+    item = models.CharField( blank=True, null=True)
     units = models.IntegerField(default=1)
     price = models.IntegerField(verbose_name="Price (per unit)")
     total_price = models.IntegerField()

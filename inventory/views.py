@@ -88,7 +88,8 @@ def stock_list(request,type = "all", bool_int = 0):
 def history_list(request):
     history_table = HistoryTable(PurchaseHistory.objects.all())
     history_table.paginate(page=request.GET.get("page", 1), per_page=5)
-    return render(request, "inventory/history_list.html",{"history_table":history_table,})
+    customer_history = True
+    return render(request, "inventory/history_list.html",{"history_table":history_table, 'customer_history':customer_history})
 
 #Table of past purchase history items (accessed through the above table)
 @login_required
@@ -101,6 +102,24 @@ def cart_list(request,pk):
     }
     return render(request, "inventory/product_list.html", context)
 
+@login_required
+def supply_history(request):
+    history_table = SupplyHistoryTable(SupplierHistory.objects.all())
+    history_table.paginate(page=request.GET.get("page", 1), per_page=5)
+    return render(request, "inventory/history_list.html",{"history_table":history_table,})
+
+#Table of past purchase history items (accessed through the above table)
+@login_required
+def supply_cart_list(request,pk):
+    obj = get_object_or_404(SupplierHistory,pk=pk)
+    product = zip(obj.product_list['product_name'],obj.product_list['product_unit'],obj.product_list['product_price'])
+    supplier_cart = True
+    context = {
+        'product':product,
+        'total':obj.total_cost,
+        'supplier_cart':supplier_cart
+    }
+    return render(request, "inventory/product_list.html", context)
 #Table of customer
 @login_required
 def customer_list(request):
@@ -234,17 +253,32 @@ def billing(request,):
     if request.method == "POST":
         form = SearchForm(request.POST)
         cform = PhoneForm(request.POST)
-        if 'submit_item' in request.POST:    
+        if 'submit_item' in request.POST:  
             if form.is_valid():
-                item = form.save(commit=False)
-                supplier = item.item.supplier
-                stock = StockItems.objects.get(name=item.item, supplier = supplier)
+                item = form.cleaned_data['item']
+                counter = StockItems.objects.filter(name = item).count()
+                if counter == 1:
+                    stock = get_object_or_404(StockItems,name = item)
+                else:
+                    price = 999999999
+                    for item in StockItems.objects.filter(name = item, is_deleted = False):
+                        if item.mrp < price:
+                            price = item.mrp
+                            pk = item.pk
+                    stock = get_object_or_404(StockItems,pk = pk)
+                    
+                
                 price = stock.mrp
-                item.price = item.total_price = price
-                try:
-                    item.save()
-                except IntegrityError:
-                    form.add_error('item','Already there')
+                Cart.objects.create(
+                    item=stock.name,
+                    price= stock.mrp,
+                    total_price=stock.mrp,
+                    supplier = stock.supplier
+                )
+                # try:
+                #     item.save()
+                # except IntegrityError:
+                #     form.add_error('item','Already there')
                 return redirect('billing',)
         else:
             form = SearchForm()
@@ -257,12 +291,12 @@ def billing(request,):
                 for cart in Cart.objects.all():
                     cart_units = cart.units
                     
-                    stock_list = get_object_or_404(StockItems, pk = cart.item.pk)
+                    stock_list = get_object_or_404(StockItems, pk = cart.pk)
                     print(stock_list.pk)
                     if stock_list.stock < cart_units:
                         messages.warning(request, "Not Enough Stock")
                         return redirect('billing')
-                    name_list.append(cart.item.name)
+                    name_list.append(cart.item)
                     unit_list.append(cart.units)
                     price_list.append(cart.price)
                     stock_list.stock = stock_list.stock - cart_units
@@ -335,7 +369,7 @@ def supplier_restock(request, supplier):
     # else:
     #     form = CountForm()
     form = CountForm()
-    return render(request, "inventory/supplier_restock.html",{'product_table':product_table, 'cart_table':cart_table, 'total_cost': total_cost, 'form':form})
+    return render(request, "inventory/supplier_restock.html",{'product_table':product_table, 'cart_table':cart_table, 'total_cost': total_cost, 'form':form, 'supplier':supplier})
 
 def add_to_cart(request,pk):
     obj = get_object_or_404(StockItems,pk=pk)
@@ -355,80 +389,30 @@ def units_amount(request, pk):
         if form.is_valid():
             item = form.cleaned_data
             obj.units = item['units']
+            obj.total_price = obj.units * obj.price
             obj.save()
             return redirect('supplier_restock', supplier = supplier)
     else:
         form = CountForm()
     return redirect('supplier_restock', supplier = supplier)
 
-# @login_required
-# def supplier_billing(request):
-#     if request.method == "POST":
-#         form = SearchSupplyForm(request.POST)
-#         cform = PhoneForm(request.POST)
-#         if 'submit_item' in request.POST:    
-#             if form.is_valid():
-#                 item = form.save(commit=False)
-#                 supplier = item.item.supplier
-#                 stock = StockItems.objects.get(name=item.item, supplier = supplier)
-#                 price = stock.mrp
-#                 item.price = item.total_price = price
-#                 try:
-#                     item.save()
-#                 except IntegrityError:
-#                     form.add_error('item','Already there')
-#                 return redirect('billing',)
-#         else:
-#             form = SearchForm()
-#         # if 'submit_customer' in request.POST:  
-#         #     if cform.is_valid():
-#         #         cust_form = cform.cleaned_data
-#         #         name_list = []
-#         #         unit_list = []
-#         #         price_list = []
-#         #         for cart in Cart.objects.all():
-#         #             cart_units = cart.units
-                    
-#         #             stock_list = get_object_or_404(StockItems, pk = cart.item.pk)
-#         #             print(stock_list.pk)
-#         #             if stock_list.stock < cart_units:
-#         #                 messages.warning(request, "Not Enough Stock")
-#         #                 return redirect('billing')
-#         #             name_list.append(cart.item.name)
-#         #             unit_list.append(cart.units)
-#         #             price_list.append(cart.price)
-#         #             stock_list.stock = stock_list.stock - cart_units
-#         #             stock_list.save()
-#         #         customer = get_object_or_404(Customer, phone_no = cust_form['phone_no'])
-#         #         json_data = {
-#         #             "product_name":name_list,
-#         #             "product_unit":unit_list,
-#         #             "product_price":price_list
-#         #         }
-#         #         total_cost = Cart.objects.aggregate(Sum('total_price'))['total_price__sum']
-#         #         PurchaseHistory.objects.create(
-#         #             customer_no = customer.phone_no,
-#         #             product_list = json_data,
-#         #             total_cost = total_cost
-                    
-#         #         )
-                
-#         #         messages.success(request,"Purchase Successfull!!")
-#         #         return redirect('cart_list', pk=PurchaseHistory.objects.last().pk)
-#         # else:
-#         #     cform = PhoneForm()
-#     else:        
-#         form = SearchSupplyForm()
-#     cart_table = cartTable(Cart.objects.all())
-#     total_cost = Cart.objects.aggregate(Sum('total_price'))
-    
-#     return render(request, "inventory/supplier_billing.html",{'form':form, 'cform':cform, 'cart_table':cart_table, 'total_cost': total_cost,})
+@login_required
+def clear_supply_table(request, supplier):
+    SupplierCart.objects.filter(supplier=supplier).delete()
+    return redirect('supplier_restock', supplier = supplier)
+
+@login_required
+def delete_item(request, pk,):
+    obj = get_object_or_404(SupplierCart,pk=pk)
+    supplier = obj.supplier
+    SupplierCart.objects.filter(pk=pk).delete()
+    return redirect('supplier_restock', supplier = supplier)
 
 def supplier_checkout(request,supplier):
     name_list = []
     unit_list = []
     price_list = []
-    for cart in Cart.objects.all():
+    for cart in SupplierCart.objects.filter(supplier=supplier):
         cart_units = cart.units
         
         stock_list = get_object_or_404(StockItems, pk = cart.item.pk)
@@ -438,20 +422,19 @@ def supplier_checkout(request,supplier):
         price_list.append(cart.price)
         stock_list.stock = stock_list.stock + cart_units
         stock_list.save()
-    supplier = get_object_or_404(Supplier, phone_no = supplier)
     json_data = {
         "product_name":name_list,
         "product_unit":unit_list,
         "product_price":price_list
     }
-    total_cost = Cart.objects.aggregate(Sum('total_price'))['total_price__sum']
+    total_cost = SupplierCart.objects.filter(supplier=supplier).aggregate(Sum('total_price'))['total_price__sum']
     SupplierHistory.objects.create(
         supplier_name = supplier,
         product_list = json_data,
         total_cost = total_cost)
     
     messages.success(request,"Purchase Successfull!!")
-    return redirect('cart_list', pk=SupplierHistory.objects.last().pk)
+    return redirect('supply_cart_list', pk=SupplierHistory.objects.last().pk)
 
 
 @login_required

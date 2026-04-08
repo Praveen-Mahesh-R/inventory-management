@@ -24,8 +24,11 @@
         <td>{{ total }}</td>
     </tr>
 </table>
+    {% if supplier_cart %}
+    <a href="{% url 'supply_history' %}" class="btn btn-success">Go back</a>
+    {% else %}
     <a href="{%url 'history_list' %}" class="btn btn-success">Go back</a>
-
+    {% endif %}
 
 <!-- <ul>
 {% for name, unit, price in product %}

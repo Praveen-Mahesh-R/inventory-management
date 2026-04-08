@@ -3,7 +3,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Row, Column, Field
 from django.contrib.auth.forms import AuthenticationForm
 from captcha.fields import CaptchaField
-from django.contrib.admin.widgets import AdminDateWidget
+from django.contrib.admin.widgets import AutocompleteSelect
 
 
 
@@ -94,13 +94,16 @@ class StockForm(forms.Form):
 
 
 #Form for searching any product to add to cart in billing page   
-class SearchForm(forms.ModelForm):
-    class Meta:
-        model = Cart
-        fields = ('item',)
-        widget = {
-            'item': forms.Select(),
-        }
+class SearchForm(forms.Form):
+    # class Meta:
+    #     model = StockItems
+    #     fields = ('name',)
+    #     widget = {
+    #         'name': forms.Select(),
+    #     }
+
+    item = forms.ChoiceField(
+        choices=[('','------')]+[(item, item ) for item in StockItems.objects.filter(is_deleted = False).values_list('name', flat=True).distinct()])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -109,15 +112,13 @@ class SearchForm(forms.ModelForm):
             'item',
             Submit('submit_item','Add Item to Cart')
         )
-        self.fields['item'].required = True
+        # self.fields['item'].queryset = StockItems.objects.values_list('name', flat=True).distinct()
         
     def clean(self):
         cleaned_data = super().clean()
         item = cleaned_data.get('item')
-        supplier = cleaned_data.get('supplier')
         if item and Cart.objects.filter(item=item).exists():
-            if supplier and Cart.objects.filter(supplier=supplier).exists():
-                raise forms.ValidationError("Already there")
+            raise forms.ValidationError("Already there")
         return cleaned_data
     
 
