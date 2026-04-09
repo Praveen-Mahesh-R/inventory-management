@@ -43,8 +43,8 @@ class ItemTypeCategory(Model):
 
 # Store Type of an item       
 class ItemType(Model):
-    code = models.CharField(max_length=2, unique=True)
-    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=2, unique=True, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
     category = models.ForeignKey(ItemTypeCategory, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):

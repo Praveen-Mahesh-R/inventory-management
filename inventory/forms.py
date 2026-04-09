@@ -4,7 +4,7 @@ from crispy_forms.layout import Submit, Layout, Row, Column, Field
 from django.contrib.auth.forms import AuthenticationForm
 from captcha.fields import CaptchaField
 from django.contrib.admin.widgets import AutocompleteSelect
-
+from django.shortcuts import get_object_or_404
 
 
 
@@ -102,8 +102,10 @@ class SearchForm(forms.Form):
     #         'name': forms.Select(),
     #     }
 
+    def product_choices():
+        return [('','------')]+[(item, item ) for item in StockItems.objects.filter(is_deleted = False).values_list('name', flat=True).distinct()]
     item = forms.ChoiceField(
-        choices=[('','------')]+[(item, item ) for item in StockItems.objects.filter(is_deleted = False).values_list('name', flat=True).distinct()])
+        choices= product_choices)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -119,7 +121,24 @@ class SearchForm(forms.Form):
         item = cleaned_data.get('item')
         if item and Cart.objects.filter(item=item).exists():
             raise forms.ValidationError("Already there")
+        if self.is_empty(item):
+            raise forms.ValidationError("No stock")
         return cleaned_data
+    
+    def is_empty(self,item):
+        counter = StockItems.objects.filter(name = item).count()
+        if counter == 1:
+            stock = get_object_or_404(StockItems,name = item)
+            if stock.stock == 0:
+                return True
+        else:
+            c = 0
+            for item in StockItems.objects.filter(name = item, is_deleted = False):
+                if item.stock == 0:
+                    c = c + 1
+            if c == counter:
+                return True
+        return False
     
 
 
@@ -262,6 +281,21 @@ class SubCategoryForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        code = cleaned_data.get('code')
+        name = cleaned_data.get('name')
+        category = cleaned_data.get('category')
+        if not code:
+            self.add_error('code','Should not be empty')
+        if not name:
+            self.add_error('name','Should not be empty')
+        if not category:
+            self.add_error('category','Should not be empty')
+        return cleaned_data
 
 
 class CountForm(forms.Form):

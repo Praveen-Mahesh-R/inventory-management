@@ -262,9 +262,10 @@ def billing(request,):
                 else:
                     price = 999999999
                     for item in StockItems.objects.filter(name = item, is_deleted = False):
-                        if item.mrp < price:
-                            price = item.mrp
-                            pk = item.pk
+                        if item.stock > 0:
+                            if item.mrp < price:
+                                price = item.mrp
+                                pk = item.pk
                     stock = get_object_or_404(StockItems,pk = pk)
                     
                 
@@ -291,7 +292,7 @@ def billing(request,):
                 for cart in Cart.objects.all():
                     cart_units = cart.units
                     
-                    stock_list = get_object_or_404(StockItems, pk = cart.pk)
+                    stock_list = get_object_or_404(StockItems, name = cart.item, supplier__name__contains = cart.supplier)
                     print(stock_list.pk)
                     if stock_list.stock < cart_units:
                         messages.warning(request, "Not Enough Stock")
@@ -337,6 +338,10 @@ def clear_table(request):
 @login_required
 def plus_units(request, pk):
     obj = get_object_or_404(Cart,pk=pk)
+    item = get_object_or_404(StockItems, name = obj.item, supplier__name__contains = obj.supplier)
+    if obj.units == item.stock:
+        messages.warning(request, "No More Stock")
+        return redirect('billing')
     obj.units = obj.units + 1
     obj.total_price =  obj.price * obj.units
     obj.save()

@@ -2,7 +2,7 @@
 
 
 {% block content %}
-
+<div ALIGN='center'>
 {% if form.instance.pk is None %}
 {% if form.code.label %}
 <h4 style="padding: 10px;">Add Sub Category:</h4>
@@ -16,11 +16,13 @@
 <h4 style="padding: 10px;">Edit Main Category:</h4>
 {% endif %}
 {% endif %}
-<p>{{ form.code.label }}</p>
-<form method="post">
+</div>
+<div class="category-form">
+<form method="post" >
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" style="float: left;" class="save btn btn-success">Submit</button>
+    <button type="submit" class="save btn btn-success">Submit</button>
 </form>
+</div>
 
 {% endblock %}
