@@ -33,6 +33,7 @@ urlpatterns = [
     path('supermart/edit_customer/<int:pk>', views.edit_customer, name="edit_customer"),
     
     path('supermart/manage_category',views.manage_category,name="manage_category"),
+    path('supermart/manage_category/<int:is_disabled>',views.manage_category,name="manage_category"),
 
     path('supermart/add_main_category',views.add_main_category,name="add_main_category"),
     path('supermart/edit_main_category/<int:pk>',views.edit_main_category,name="edit_main_category"),
@@ -40,6 +41,11 @@ urlpatterns = [
     path('supermart/add_sub_category',views.add_sub_category,name="add_sub_category"),
     path('supermart/edit_sub_category/<int:pk>',views.edit_sub_category,name="edit_sub_category"),
 
+    path('supermart/remove_check_category/<int:pk>',views.remove_check_category, name="remove_check_category"),
+    path('supermart/remove_category/<int:pk>',views.remove_category, name="remove_category"),
+    
+    path('supermart/restore_check_category/<int:pk>',views.restore_check_category, name="restore_check_category"),
+    path('supermart/restore_category/<int:pk>',views.restore_category, name="restore_category"),
     path('ajax/load-cities/', views.load_cities, name='ajax_load_cities'),
     
     path('supermart/logout/', views.logout_check, name="logout_check"),

@@ -22,7 +22,13 @@
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="save btn btn-success">Submit</button>
+{% if form.instance.pk %}
+{% if form.code.label %}
+<a href="{% url 'remove_check_category' pk=form.instance.pk %}" class="btn btn-danger" style="float: right;">Delete</a>
+{% endif %}
+{% endif %}
 </form>
+
 </div>
 
 {% endblock %}

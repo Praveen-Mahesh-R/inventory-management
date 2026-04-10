@@ -184,6 +184,7 @@ class ItemForm(forms.ModelForm):
             ),
             Submit('submit','Submit')
         )
+        self.fields['item_type'].queryset = ItemType.objects.filter(is_disabled = False)
         self.fields['initial_date'].widget = forms.DateInput(
             format=('%Y-%m-%d'),
             attrs={
@@ -277,7 +278,7 @@ class SubCategoryForm(forms.ModelForm):
 
     class Meta:
         model = ItemType
-        fields = '__all__'
+        exclude = ('is_disabled',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

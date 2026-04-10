@@ -35,7 +35,11 @@
             {% for type in typelist %}
             {% if type.category == category %}
             <tr>
+                {% if type.is_disabled == True %}
+                <td><a href="{%url 'restore_check_category' pk=type.pk %}" style="text-decoration: none; color: black;">{{ type }}</a></td>
+                {% else %}
                 <td><a href="{%url 'edit_sub_category' pk=type.pk %}" style="text-decoration: none; color: black;">{{ type }}</a></td>
+                {% endif %}
             </tr>
             {% endif %}
             {% endfor %}
@@ -48,7 +52,11 @@
     <a href="{%url 'add_main_category' %}" class="btn btn-success">Add Main category</a>
     <a href="{%url 'add_sub_category' %}" class="btn btn-success">Add Sub category</a>
 </div>
-
+<br>
+<div ALIGN='center'>
+    <a href="{% url 'manage_category' is_disabled=1 %}" class="btn btn-secondary">Recycle Bin</a>
+</div>
+<br>
 
 
 

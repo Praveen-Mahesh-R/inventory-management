@@ -79,7 +79,7 @@ def stock_list(request,type = "all", bool_int = 0):
             ).filter(is_deleted = bool(bool_int)),exclude=excluded_columns)
     RequestConfig(request).configure(stock_table)
     stock_table.paginate(page=request.GET.get("page", 1), per_page=10)
-    typelist = ItemType.objects.all().order_by('category')  
+    typelist = ItemType.objects.filter(is_disabled=False).order_by('category')  
     category = ItemTypeCategory.objects.all().order_by('pk') 
     return render(request, "inventory/stock_list.html",{"stock_table":stock_table, "typelist":typelist, "type":type, "categories":category})
 
@@ -184,6 +184,22 @@ def add_stock(request,pk):
             stock = form.cleaned_data
             obj.stock = obj.stock + stock["amount"]
             obj.restock_date = date.today()
+            name_list = []
+            unit_list = []
+            price_list = []
+            total = stock['amount']*obj.cost_price
+            name_list.append(obj.name)
+            unit_list.append(stock["amount"])
+            price_list.append(obj.cost_price)
+            json_data = {
+                "product_name":name_list,
+                "product_unit":unit_list,
+                "product_price":price_list
+            }
+            SupplierHistory.objects.create(
+                supplier_name = obj.supplier.name,
+                product_list = json_data,
+                total_cost = total)
             obj.save()
             return redirect('stock_list', type = obj.item_type.code)
     else:
@@ -443,8 +459,8 @@ def supplier_checkout(request,supplier):
 
 
 @login_required
-def manage_category(request):
-    typelist = ItemType.objects.all().order_by('category')  
+def manage_category(request, is_disabled = 0):
+    typelist = ItemType.objects.filter(is_disabled = is_disabled).order_by('category')  
     category = ItemTypeCategory.objects.all().order_by('pk')
     return render(request, "inventory/manage_category.html",{"categories":category, "typelist":typelist})
 
@@ -523,6 +539,9 @@ def remove(request,pk):
 def restore(request,pk):
     obj = get_object_or_404(StockItems,pk=pk)
     type = obj.item_type.code
+    if obj.item_type.is_disabled == True:
+        messages.warning(request, "The category this item belongs to is disabled! Enable it first or change category")
+        return redirect('stock_list', type="all", bool_int=1)
     obj.is_deleted = False
     obj.save()
     return redirect('stock_list', type = type)
@@ -539,3 +558,36 @@ def load_cities(request):
 
 
 
+@login_required
+def remove_check_category(request,pk):
+    return render(request, "inventory/remove_check_category.html",{'pk': pk})
+
+#Page asking confirmation on restoring an item into catalogue
+@login_required
+def restore_check_category(request,pk):
+    return render(request, "inventory/restore_check_category.html",{'pk': pk})
+
+#Deletes item from inventory table
+@login_required
+def remove_category(request,pk):
+    obj = get_object_or_404(ItemType,pk=pk)
+    type = obj.code
+    for item in StockItems.objects.filter(item_type__code__contains = type):
+        item.is_deleted = True
+        item.save()
+    obj.is_disabled = True
+    obj.save()
+    return redirect('manage_category')
+
+#Restores item back into inventory table
+@login_required
+def restore_category(request,pk):
+    obj = get_object_or_404(ItemType,pk=pk)
+
+    type = obj.code
+    for item in StockItems.objects.filter(item_type__code__contains = type):
+        item.is_deleted = False
+        item.save()
+    obj.is_disabled = False
+    obj.save()
+    return redirect('manage_category')
