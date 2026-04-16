@@ -42,7 +42,7 @@
   <a href="{% url 'stock_list' type=type bool_int=1 %}">Recycle Bin</a>
   </div>
 </div>
-<!-- <a href="{% url 'manage_category' %}" class="btn btn-secondary" style="position: absolute; bottom: 0; float: left;">Manage Categories</a> -->
+
 </div>
 
 <div class="content">
@@ -50,8 +50,7 @@
   <form action="{% url 'stock_list' %}" method="get" class="search" style="float: right;">
         <input name="q" type="text" placeholder="Search...">
   </form>
-  <!-- <a href="{% url 'stock_list' type=type bool_int=1 %}" class="btn btn-secondary" style="float: right;">Bin</a>
-  <a href="{% url 'new_item_add' %}" class="btn btn-success" style="float: right; margin-right: 4px;">Add New Product</a> -->
+
   {% render_table stock_table %}
 </div>
 

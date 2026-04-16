@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 from django.db import IntegrityError
-from datetime import date
+from datetime import date, datetime, timedelta
 from json2html import *
 from django_tables2 import RequestConfig
 from django.db.models import Q
@@ -37,7 +37,22 @@ def logout_check(request):
 
 #default home page view
 def home(request):
-    return render(request, "inventory/home.html",{})
+    startdate = datetime.today()
+    startdate -= timedelta(days=startdate.weekday())
+    enddate = startdate + timedelta(days=6)
+    sold = PurchaseHistory.objects.filter(purchase_datetime__range=[startdate,enddate])
+    bought = SupplierHistory.objects.filter(purchase_datetime__range=[startdate,enddate])
+    revenue = 0
+    for cart in sold:
+        revenue = revenue + cart.total_cost
+    spent = 0
+    for cart in bought:
+        spent = spent + cart.total_cost
+    context = {
+        'revenue': revenue,
+        'spent': spent
+    }
+    return render(request, "inventory/home.html",context)
 
 
 #Views of all the table pages in website
@@ -130,7 +145,7 @@ def customer_list(request):
             Q(name__icontains = query)|Q(phone_no__icontains = query)
         ))
     RequestConfig(request).configure(customer_table)
-    customer_table.paginate(page=request.GET.get("page", 1), per_page=2)
+    customer_table.paginate(page=request.GET.get("page", 1), per_page=8)
     return render(request, "inventory/customer_list.html",{"customer_table":customer_table,})
 
 
@@ -141,16 +156,19 @@ def customer_list(request):
 def new_item_add(request):
     if request.method == "POST":
         form = ItemForm(request.POST)
+        form.fields.pop('restock_date')
         if form.is_valid():
             item = form.save(commit=False)
-            if item.initial_date is None:
-                item.initial_date = date.today()
-            if item.restock_date is None:
-                item.restock_date = date.today()
+            item.stock = 0
+            # if item.initial_date is None:
+            #     item.initial_date = date.today()
+            # if item.restock_date is None:
+            #     item.restock_date = date.today()
             item.save()
             return redirect('stock_list', type = item.item_type.code)
     else:
         form = ItemForm()
+        form.fields.pop('restock_date')
     return render(request, "inventory/new_item_add.html",{'form': form})
 
 #Page to view and select various functions regarding inventory item
@@ -375,23 +393,20 @@ def minus_units(request, pk):
         Cart.objects.filter(pk=pk).delete()
     return redirect('billing')
 
+
+#Page to restock from a supplier in bulk
 @login_required
 def supplier_restock(request, supplier):
     product_table = SupplierCatalogueTable(StockItems.objects.filter(supplier__name__contains = supplier))
     cart_table = SupplierCartTable(SupplierCart.objects.filter(supplier = supplier))
     total_cost = SupplierCart.objects.aggregate(Sum('total_price'))
-    # obj = 
-    # if request.method == "POST":
-    #     form = CountForm(request.POST,request.FILES)
-    #     if form.is_valid():
-    #         item = form.cleaned_data
-    #         item.save()
-    #         return redirect('supplier_restock')
-    # else:
-    #     form = CountForm()
     form = CountForm()
+    RequestConfig(request).configure(product_table)
+    product_table.paginate(page=request.GET.get("page", 1), per_page=8)
     return render(request, "inventory/supplier_restock.html",{'product_table':product_table, 'cart_table':cart_table, 'total_cost': total_cost, 'form':form, 'supplier':supplier})
 
+#Adds an item to cart in restocking page
+@login_required
 def add_to_cart(request,pk):
     obj = get_object_or_404(StockItems,pk=pk)
     SupplierCart.objects.create( 
@@ -402,6 +417,8 @@ def add_to_cart(request,pk):
     )
     return redirect('supplier_restock', supplier=obj.supplier.name)
 
+#Change the units of items to buy
+@login_required
 def units_amount(request, pk):
     obj = get_object_or_404(SupplierCart,pk=pk)
     supplier = obj.supplier
@@ -417,11 +434,13 @@ def units_amount(request, pk):
         form = CountForm()
     return redirect('supplier_restock', supplier = supplier)
 
+#Delete the cart for one supplier
 @login_required
 def clear_supply_table(request, supplier):
     SupplierCart.objects.filter(supplier=supplier).delete()
     return redirect('supplier_restock', supplier = supplier)
 
+#Delete single item in restock cart
 @login_required
 def delete_item(request, pk,):
     obj = get_object_or_404(SupplierCart,pk=pk)
@@ -429,6 +448,8 @@ def delete_item(request, pk,):
     SupplierCart.objects.filter(pk=pk).delete()
     return redirect('supplier_restock', supplier = supplier)
 
+#Buying the items to restock
+@login_required
 def supplier_checkout(request,supplier):
     name_list = []
     unit_list = []
@@ -458,12 +479,15 @@ def supplier_checkout(request,supplier):
     return redirect('supply_cart_list', pk=SupplierHistory.objects.last().pk)
 
 
+
+#Check and manage all the item categories
 @login_required
 def manage_category(request, is_disabled = 0):
     typelist = ItemType.objects.filter(is_disabled = is_disabled).order_by('category')  
     category = ItemTypeCategory.objects.all().order_by('pk')
     return render(request, "inventory/manage_category.html",{"categories":category, "typelist":typelist})
 
+#Adding a new main category
 @login_required
 def add_main_category(request):
     if request.method == "POST":
@@ -476,6 +500,7 @@ def add_main_category(request):
         form = MainCategoryForm()
     return render(request, "inventory/category_form.html",{'form': form})
 
+#Editing a new main category
 @login_required
 def edit_main_category(request,pk):
     obj = get_object_or_404(ItemTypeCategory,pk=pk)
@@ -489,6 +514,8 @@ def edit_main_category(request,pk):
         form = MainCategoryForm(instance = obj)
     return render(request, "inventory/category_form.html",{'form': form})
 
+
+#Adding a new sub category
 @login_required
 def add_sub_category(request):
     if request.method == "POST":
@@ -501,6 +528,7 @@ def add_sub_category(request):
         form = SubCategoryForm()
     return render(request, "inventory/category_form.html",{'form': form})
 
+#Editing a sub category
 @login_required
 def edit_sub_category(request,pk):
     obj = get_object_or_404(ItemType,pk=pk)
@@ -557,17 +585,17 @@ def load_cities(request):
 
 
 
-
+#Page asking confirmation on deleting an subcategory
 @login_required
 def remove_check_category(request,pk):
     return render(request, "inventory/remove_check_category.html",{'pk': pk})
 
-#Page asking confirmation on restoring an item into catalogue
+#Page asking confirmation on restoring an subcategory
 @login_required
 def restore_check_category(request,pk):
     return render(request, "inventory/restore_check_category.html",{'pk': pk})
 
-#Deletes item from inventory table
+#Deletes subcategory
 @login_required
 def remove_category(request,pk):
     obj = get_object_or_404(ItemType,pk=pk)
@@ -579,7 +607,7 @@ def remove_category(request,pk):
     obj.save()
     return redirect('manage_category')
 
-#Restores item back into inventory table
+#Restores subcategory
 @login_required
 def restore_category(request,pk):
     obj = get_object_or_404(ItemType,pk=pk)

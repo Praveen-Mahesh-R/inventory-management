@@ -3,8 +3,21 @@
 {% block content %}
 
 <p style="text-align: center; padding: 30px;">Welcome to Supermart inventory site</p>
-
-
+<div class="container" style="width: 50%;">
+  <div class="row" style="border: rgb(185, 185, 185) solid;">
+    <div class="col-sm" style="text-align: center; ">
+      <br>
+      <h4>Revenue:</h6>
+      <p>&#8377 {{ revenue }}</p>
+    </div>
+    <div class="col-sm" style="text-align: center;">
+      <br>
+      <h4>Expenditure:</h6>
+      <p>&#8377 {{ spent }}</p>
+    </div>
+  </div>
+  <p ALIGN='center'>*data is for the current week</p>  
+</div>
 <style>
     #one {
   background-color: #04AA6D;

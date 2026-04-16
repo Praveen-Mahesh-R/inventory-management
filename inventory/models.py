@@ -63,7 +63,7 @@ class StockItems(Model):
     cost_price = models.IntegerField(blank=True, null=True, verbose_name="Cost Price")
     mrp = models.IntegerField(blank=True, null=True, verbose_name="MRP")
     initial_date = models.DateField(default=date.today, blank=True, null=True)
-    restock_date = models.DateField(default=date.today, blank=True, null=True)
+    restock_date = models.DateField( blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
 
     

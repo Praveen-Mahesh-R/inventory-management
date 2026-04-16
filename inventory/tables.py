@@ -1,8 +1,7 @@
 import django_tables2 as tables
-from django_tables2.utils import A
-from django_tables2.columns import JSONColumn
+
 from .models import *
-from django.utils.safestring import mark_safe
+
 from django.shortcuts import get_object_or_404
 
 class SupplierTable(tables.Table):
@@ -40,10 +39,7 @@ class cartTable(tables.Table):
         self.columns['plus'].column.attrs = {"td":{"style" : "width:1%;" }}
         self.columns['minus'].column.attrs = {"td":{"style" : "width:1%;" }}
 
-# class ProductListTable(tables.Table):
-#     product_name = tables.Column()
-#     product_unit = tables.Column()
-#     product_price = tables.Column()
+
 
 
 class HistoryTable(tables.Table):

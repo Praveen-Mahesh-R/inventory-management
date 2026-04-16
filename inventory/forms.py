@@ -143,18 +143,14 @@ class SearchForm(forms.Form):
 
 
 
-# class DateInput(forms.DateInput):
-#     input_type = 'date'
 
-#     def format_value(self, value):
-#         return value.isoformat() if value is not None and hasattr(value, "isoformat") else ""
 
 #Form for adding or editing a product in inventory catalogue 
 class ItemForm(forms.ModelForm):
 
     class Meta:
         model = StockItems
-        fields = '__all__'
+        exclude = ('stock',)
         
 
     def __init__(self, *args, **kwargs):
@@ -167,11 +163,7 @@ class ItemForm(forms.ModelForm):
                 Column('supplier', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
-            Row(
-                Column('stock', css_class='form-group col-md-6 mb-0'),
-                Column('quantity', css_class='form-group col-md-6 mb-0'),
-                css_class='form-row'
-            ),
+            'quantity',
             Row(
                 Column('cost_price', css_class='form-group col-md-6 mb-0'),
                 Column('mrp', css_class='form-group col-md-6 mb-0'),
@@ -216,10 +208,10 @@ class ItemForm(forms.ModelForm):
         if not supplier:
             self.add_error('supplier','Supplier should not be empty')
         
-        if not stock:
-            self.add_error('stock','Stock should not be empty')
-        elif stock < 0:
-            self.add_error('stock','Stock should be a positive number')
+        # if not stock:
+        #     self.add_error('stock','Stock should not be empty')
+        # elif stock < 0:
+        #     self.add_error('stock','Stock should be a positive number')
         
         if not quantity:
             self.add_error('quantity', 'Quantity should not be empty')
@@ -320,27 +312,3 @@ class CountForm(forms.Form):
             self.add_error('units','Should be a positive number or zero')
         return cleaned_data
 
-# #Form for searching any product to add to cart in supplier billing page   
-# class SearchSupplyForm(forms.ModelForm):
-#     class Meta:
-#         model = SupplierCart
-#         fields = ('item',)
-#         widget = {
-#             'item': forms.Select(),
-#         }
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.helper = FormHelper()
-#         self.helper.layout = Layout(
-#             'item',
-#             Submit('submit_item','Add Item to Cart')
-#         )
-#         self.fields['item'].required = True
-        
-#     def clean(self):
-#         cleaned_data = super().clean()
-#         item = cleaned_data.get('item')
-#         if item and SupplierCart.objects.filter(item=item).exists():
-#                 raise forms.ValidationError("Already there")
-#         return cleaned_data

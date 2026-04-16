@@ -140,6 +140,8 @@ DJANGO_TABLES2_TABLE_ATTRS = {
         'class': 'table-light',   
     }, 
 }
+formats.DATETIME_FORMAT = "d-m-y H:i:s"
+formats.SHORT_DATETIME_FORMAT = "d-m-y H:i"
 formats.SHORT_DATE_FORMAT = "d-m-Y"
 formats.DATE_FORMAT = "d-m-Y"
 formats.DATE_INPUT_FORMATS = ["%d-%m-%Y"]
