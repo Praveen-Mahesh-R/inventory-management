@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from captcha.fields import CaptchaField
 from django.contrib.admin.widgets import AutocompleteSelect
 from django.shortcuts import get_object_or_404
-
+from django.core.validators import FileExtensionValidator
 
 
 from .models import *
@@ -270,7 +270,7 @@ class SubCategoryForm(forms.ModelForm):
 
     class Meta:
         model = ItemType
-        exclude = ('is_disabled',)
+        fields = ('category','code','name',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -311,4 +311,24 @@ class CountForm(forms.Form):
         elif amount < 0:
             self.add_error('units','Should be a positive number or zero')
         return cleaned_data
+    
+class FileForm(forms.Form):
+
+    # def supplier_choices():
+    #     return [('','------')]+[(item, item ) for item in Supplier.objects.all().values_list('name', flat=True)]
+    
+    supplier = forms.ModelChoiceField(
+        queryset= Supplier.objects.all(),
+        empty_label="Select Supplier"
+    )
+    files = forms.FileField(
+        required=True,
+        validators=[FileExtensionValidator(['csv'])],
+        widget=forms.ClearableFileInput(attrs={'accept':'.csv'}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['supplier'].widget.attrs['class'] = 'form-control'
+        self.fields['files'].widget.attrs['class'] = 'form-control'
 

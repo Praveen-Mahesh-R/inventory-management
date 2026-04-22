@@ -12,6 +12,11 @@ from datetime import date, datetime, timedelta
 from json2html import *
 from django_tables2 import RequestConfig
 from django.db.models import Q
+from django.http import JsonResponse
+import pandas as pd
+import openpyxl
+import csv
+import codecs
 
 #login view
 def user_login(request):
@@ -80,18 +85,18 @@ def stock_list(request,type = "all", bool_int = 0):
         excluded_columns = ('restore',)
     query = request.GET.get("q", None)
     if type != "all":
-        stock_table = StockTable(StockItems.objects.filter(item_type__code__contains = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
+        stock_table = StockTable(StockItems.objects.filter(item_type__code__contains = type, is_deleted = bool(bool_int)).order_by('-initial_date'),exclude=excluded_columns)
         if query:
             stock_table = StockTable(StockItems.objects.filter(
                 Q(name__icontains = query)|Q(supplier__name__icontains = query)
-            ).filter(item_type__code__contains = type, is_deleted = bool(bool_int)),exclude=excluded_columns)
+            ).filter(item_type__code__contains = type, is_deleted = bool(bool_int)).order_by('-initial_date'),exclude=excluded_columns)
     
     else:
-        stock_table = StockTable(StockItems.objects.filter(is_deleted = bool(bool_int)),exclude=excluded_columns)
+        stock_table = StockTable(StockItems.objects.filter(is_deleted = bool(bool_int)).order_by('-initial_date'),exclude=excluded_columns)
         if query:
             stock_table = StockTable(StockItems.objects.filter(
                 Q(name__icontains = query)|Q(supplier__name__icontains = query)
-            ).filter(is_deleted = bool(bool_int)),exclude=excluded_columns)
+            ).filter(is_deleted = bool(bool_int)).order_by('-initial_date'),exclude=excluded_columns)
     RequestConfig(request).configure(stock_table)
     stock_table.paginate(page=request.GET.get("page", 1), per_page=10)
     typelist = ItemType.objects.filter(is_disabled=False).order_by('category')  
@@ -399,7 +404,7 @@ def minus_units(request, pk):
 def supplier_restock(request, supplier):
     product_table = SupplierCatalogueTable(StockItems.objects.filter(supplier__name__contains = supplier))
     cart_table = SupplierCartTable(SupplierCart.objects.filter(supplier = supplier))
-    total_cost = SupplierCart.objects.aggregate(Sum('total_price'))
+    total_cost = SupplierCart.objects.filter(supplier = supplier).aggregate(Sum('total_price'))
     form = CountForm()
     RequestConfig(request).configure(product_table)
     product_table.paginate(page=request.GET.get("page", 1), per_page=8)
@@ -619,3 +624,64 @@ def restore_category(request,pk):
     obj.is_disabled = False
     obj.save()
     return redirect('manage_category')
+
+@login_required
+def add_new_product(request):
+    return render(request, "inventory/add_new_product.html",{})
+
+@login_required
+def import_data_to_db(request):
+    
+    
+    if request.method == 'POST':
+        form = FileForm(request.POST,request.FILES)
+        if form.is_valid():
+            data = form.cleaned_data
+            file = data['files']
+            # obj = File.objects.create(
+            #     file=file
+            # )
+            # wb = openpyxl.load_workbook(file)
+            # df = pd.read_excel(file)
+            # sheet = wb.active
+            reader = csv.reader(codecs.iterdecode(file,'utf-8'))
+            
+            supplier = data['supplier']
+            print("------------------HELLO-------------------------------")
+            next(reader)
+            for row in reader: 
+                typeid = ItemType.objects.get(code = row[1]).pk
+                _, created = StockItems.objects.get_or_create(
+                    name=row[0],
+                    item_type_id=typeid,
+                    supplier=supplier,
+                    stock=0,
+                    quantity=row[2],
+                    cost_price=row[3],
+                    mrp=row[4]
+                )
+            return redirect('stock_list',)
+        # data_to_display = df.to_html()
+    else:
+        form = FileForm()
+    return render(request, "inventory/upload.html",{ 'form':form})
+
+
+
+
+def export_data_to_excel(request):
+    objs = StockItems.objects.all()
+    data = list(objs)
+    # for obj in objs:
+    #     data.append({
+    #         "name": obj.name,
+    #         "item_type": obj.item_type,
+    #         "supplier": obj.supplier.name,
+    #         "stock": obj.stock,
+    #         "quantity":obj.quantity,
+    #         cost
+    #     })
+    pd.DataFrame(data).to_excel('output.xlsx')
+    return JsonResponse({
+        'status': 200
+    })

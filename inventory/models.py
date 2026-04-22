@@ -157,6 +157,9 @@ class SupplierCart(Model):
     
     def __str__(self):
         return str(self.item)
+    
+class File(Model):
+    file = models.FileField(upload_to="excel")
 
 # class AbstractItems(Model):
 #     name = models.CharField(max_length=100)

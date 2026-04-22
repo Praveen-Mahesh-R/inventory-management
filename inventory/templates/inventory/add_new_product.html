@@ -1,0 +1,16 @@
+{% extends 'inventory/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<h4 style="padding: 10px;" ALIGN='center'>How do you want to add a new product?</h4>
+<div ALIGN='center'>
+  <a href="{% url 'new_item_add' %}" class="btn btn-danger">Manually</a>
+  <a href="{% url 'import_data_to_db' %}" class="btn btn-success">In Bulk</a>
+</div>
+<!-- <p ALIGN='center'><b>Remainder:</b> Restoring this category will all move all deleted items of this category out of recycle bin</p> -->
+
+
+
+    
+{% endblock %}

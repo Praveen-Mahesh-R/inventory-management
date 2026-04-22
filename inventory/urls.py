@@ -66,4 +66,9 @@ urlpatterns = [
     path('supermart/<str:supplier>/checkout/', views.supplier_checkout, name="supplier_checkout"),
     path('clear_supply_table/<str:supplier>', views.clear_supply_table, name="clear_supply_table"),
     path('delete_item/<int:pk>', views.delete_item, name="delete_item"),
+
+    path('supermart/add_new_product',views.add_new_product,name="add_new_product"),
+
+    path('import_data_to_db/', views.import_data_to_db, name="import_data_to_db"),
+    path('export_data_to_excel/', views.export_data_to_excel, name="export_data_to_excel"),
 ]

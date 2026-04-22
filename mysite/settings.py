@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'mathfilters',
     'crispy_bootstrap5',
     'inventory',
+    'import_export',
 ]
 
 MIDDLEWARE = [

@@ -38,8 +38,9 @@
   </button>
   <div class="dropdown-container">
   <a href="{% url 'manage_category' %}">Manage Categories</a>
-  <a href="{% url 'new_item_add' %}">Add New Product</a>
+  <a href="{% url 'add_new_product' %}">Add New Product</a>
   <a href="{% url 'stock_list' type=type bool_int=1 %}">Recycle Bin</a>
+  <a href="{% url 'export_data_to_excel' %}">Export Data</a>
   </div>
 </div>
 
