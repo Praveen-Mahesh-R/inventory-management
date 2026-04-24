@@ -23,8 +23,7 @@ class CustomerTable(tables.Table):
     class Meta:
         model = Customer
         template_name = "django_tables2/bootstrap4.html"
-    edit = tables.TemplateColumn(verbose_name="Edit",template_code='{% load static %}<a href="{% url "edit_customer" record.id %}"> <img src="{% static \'icons/pencil-square.svg\' %}" </a>', orderable=False)
-    
+    manage = tables.TemplateColumn(verbose_name="Edit",template_code='{% load static %}<a href="{% url "manage_customer" record.id %}"> <img src="{% static \'icons/gear-fill.svg\' %}" </a>', orderable=False)
 
 class cartTable(tables.Table):
     class Meta:

@@ -12,7 +12,7 @@ from datetime import date, datetime, timedelta
 from json2html import *
 from django_tables2 import RequestConfig
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 import pandas as pd
 import openpyxl
 import csv
@@ -669,19 +669,59 @@ def import_data_to_db(request):
 
 
 
-def export_data_to_excel(request):
+def product_excel_export(request):
     objs = StockItems.objects.all()
-    data = list(objs)
-    # for obj in objs:
-    #     data.append({
-    #         "name": obj.name,
-    #         "item_type": obj.item_type,
-    #         "supplier": obj.supplier.name,
-    #         "stock": obj.stock,
-    #         "quantity":obj.quantity,
-    #         cost
-    #     })
+    data = []
+    for obj in objs:
+        data.append({
+            "name": obj.name,
+            "item_type": obj.item_type,
+            "supplier": obj.supplier.name,
+            "stock": obj.stock,
+            "quantity":obj.quantity,
+        })
     pd.DataFrame(data).to_excel('output.xlsx')
     return JsonResponse({
         'status': 200
     })
+
+def product_csv_export(request):
+    response = HttpResponse(content_type = 'text/csv')
+    response['Content-Disposition'] = 'attachment; filename="products.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['name','item_type','supplier','stock','quantity','cost_price','mrp'])
+    products = StockItems.objects.all().values_list('name','item_type','supplier','stock','quantity','cost_price','mrp')
+    for product in products:
+        writer.writerow(product)
+    
+    return response
+
+
+def customer_csv_export(request, pk):
+    details = Customer.objects.get(pk=pk)
+    product_data = PurchaseHistory.objects.filter(customer_no = details.phone_no)
+    response = HttpResponse(content_type = 'text/csv')
+    name = details.name + ".csv"
+    response['Content-Disposition'] = 'attachment; filename="' + name + '"'
+    writer = csv.writer(response)
+    writer.writerow(['product_name','product_unit','product_price','purchase_datetime'])
+    for product in product_data:
+        json_data = zip(product.product_list['product_name'],product.product_list['product_unit'],product.product_list['product_price'])
+        date_time = product.purchase_datetime
+        for name, unit, price in json_data:
+            writer.writerow([name,unit,price,date_time])
+
+    return response
+
+def manage_customer(request,pk):
+    return render(request, "inventory/manage_customer.html",{'pk': pk})
+
+
+# obj = get_object_or_404(PurchaseHistory,pk=pk)
+# product = zip(obj.product_list['product_name'],obj.product_list['product_unit'],obj.product_list['product_price'])
+# context = {
+#     'product':product,
+#     'total':obj.total_cost
+# }
+
+

@@ -70,5 +70,9 @@ urlpatterns = [
     path('supermart/add_new_product',views.add_new_product,name="add_new_product"),
 
     path('import_data_to_db/', views.import_data_to_db, name="import_data_to_db"),
-    path('export_data_to_excel/', views.export_data_to_excel, name="export_data_to_excel"),
+    path('product_excel_export/', views.product_excel_export, name="product_excel_export"),
+    path('product_csv_export/', views.product_csv_export, name="product_csv_export"),
+
+    path('supermart/manage_customer/<int:pk>', views.manage_customer, name="manage_customer"),
+    path('customer_csv_export/<int:pk>', views.customer_csv_export, name="customer_csv_export"),
 ]
