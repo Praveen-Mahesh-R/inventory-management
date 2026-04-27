@@ -7,6 +7,7 @@
 {% render_table history_table %}
 
 {% if customer_history %}
+<a href="{% url 'sales_pdf_report'  %}" class="btn btn-success">Generate Report</a>
 <style>
     #eight {
   background-color: #04AA6D;

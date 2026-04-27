@@ -17,6 +17,10 @@ import pandas as pd
 import openpyxl
 import csv
 import codecs
+import io
+from django.http import FileResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 #login view
 def user_login(request):
@@ -647,7 +651,7 @@ def import_data_to_db(request):
             reader = csv.reader(codecs.iterdecode(file,'utf-8'))
             
             supplier = data['supplier']
-            print("------------------HELLO-------------------------------")
+            # print("------------------HELLO-------------------------------")
             next(reader)
             for row in reader: 
                 typeid = ItemType.objects.get(code = row[1]).pk
@@ -716,7 +720,188 @@ def customer_csv_export(request, pk):
 def manage_customer(request,pk):
     return render(request, "inventory/manage_customer.html",{'pk': pk})
 
+def customer_pdf_report(request, pk):
 
+    customer = Customer.objects.get(pk=pk)
+    product = PurchaseHistory.objects.filter(customer_no = customer.phone_no)
+    total_spent = product.aggregate(Sum('total_cost'))['total_cost__sum']
+    
+    #stores data on item/s a customer bought the most number of times
+    most_got_product = []
+    most_got_units = []
+    most_got_money = []
+
+    #stores data on item/s a customer spent the most money on during their entire purchase history
+    most_spent_product = []
+    most_spent_units = []
+    most_spent_money = []
+    name_list = []
+    unit_list = []
+    price_list = []
+
+    #get all cart data in singular lists and adds units and price values if already exists in list
+    for cart in product:
+        json_data = zip(cart.product_list['product_name'],cart.product_list['product_unit'],cart.product_list['product_price'])
+        for name, unit, price in json_data:
+            if name in name_list:
+                idx = name_list.index(name)
+                unit_list[idx] = unit_list[idx] + unit
+                price_list[idx] = price_list[idx] + unit*price
+            else:
+                name_list.append(name)
+                unit_list.append(unit)
+                price_list.append(price*unit)
+    #get max value
+    highest_unit = max(unit_list)
+    highest_price = max(price_list)
+    #get indices of max value/s
+    unit_indices = [i for i, x in enumerate(unit_list) if x == highest_unit]
+    price_indices = [i for i, x in enumerate(price_list) if x == highest_price]
+
+    #store data of max value/s
+    for i in unit_indices:
+        most_got_product.append(name_list[i])
+        most_got_units.append(unit_list[i])
+        most_got_money.append(price_list[i])
+    for i in price_indices:
+        most_spent_product.append(name_list[i])
+        most_spent_units.append(unit_list[i])
+        most_spent_money.append(price_list[i])
+
+    
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer)
+    # p.setFillColorRGB(0.1,0.7,0.6)
+    # p.rect(0,0, letter[0],letter[1], fill=True,stroke=False)
+    # p.setFillColorRGB(1, 1, 1)
+    p.setFont("Courier", 28)
+    p.setFillColorRGB(0.153, 0.431, 0.153)
+    p.drawString(50,750,"SuperMart")
+
+    p.setFont("Helvetica", 16)
+    p.setFillColorRGB(0, 0, 0)
+    p.line(50, 740, 550, 740)
+    p.drawString(50,700, "Customer Name: "+customer.name)
+    p.drawString(50,675, "Customer Phone No: "+str(customer.phone_no))
+    p.drawString(50,650, "Total Expenditure: Rs."+str(total_spent))
+    p.drawString(50,625, "Total No of Visits: "+str(product.count()))
+    p.line(50, 620, 550, 620)
+    p.drawString(50,585, "The product customer bought the most no of times:")
+    p.drawString(50,560, "Product: "+", ".join(most_got_product))
+    p.drawString(50,535, "Total units gotten: "+", ".join(map(str,most_got_units)))
+    p.drawString(50,510, "Total spent: Rs."+", Rs.".join(map(str,most_got_money)))
+    p.line(50, 505, 550, 505)
+    p.drawString(50,470, "The product customer spent the most money on:")
+    p.drawString(50,445, "Product: "+", ".join(most_spent_product))
+    p.drawString(50,420, "Total units gotten: "+", ".join(map(str,most_spent_units)))
+    p.drawString(50,395, "Total spent: Rs."+", Rs.".join(map(str,most_spent_money)))
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=customer.name+"-report.pdf")
+
+
+def sales_pdf_report(request):
+
+    customer_count = Customer.objects.all().count()
+    product = PurchaseHistory.objects.all()
+    total_spent = product.aggregate(Sum('total_cost'))['total_cost__sum']
+
+    top_customer_name = []
+    customer_name=[]
+    customer_money=[]
+    
+    #stores data on item/s all customers bought the most number of times
+    most_got_product = []
+    most_got_units = []
+    most_got_money = []
+
+    #stores data on item/s all customers spent the most money on during their entire purchase history
+    most_spent_product = []
+    most_spent_units = []
+    most_spent_money = []
+    name_list = []
+    unit_list = []
+    price_list = []
+
+    #get all cart data in singular lists and adds values if already exists in list
+    for cart in product:
+        name = Customer.objects.get(phone_no=cart.customer_no).name
+        if name in customer_name:
+                idx = customer_name.index(name)
+                customer_money[idx] = customer_money[idx] + cart.total_cost
+        else:
+            customer_name.append(name)
+            customer_money.append(cart.total_cost)
+        json_data = zip(cart.product_list['product_name'],cart.product_list['product_unit'],cart.product_list['product_price'])
+        for name, unit, price in json_data:
+            if name in name_list:
+                idx = name_list.index(name)
+                unit_list[idx] = unit_list[idx] + unit
+                price_list[idx] = price_list[idx] + unit*price
+            else:
+                name_list.append(name)
+                unit_list.append(unit)
+                price_list.append(price*unit)
+    #get max value
+    highest_unit = max(unit_list)
+    highest_price = max(price_list)
+    print(price_list)
+    #get indices of max value/s
+    unit_indices = [i for i, x in enumerate(unit_list) if x == highest_unit]
+    price_indices = [i for i, x in enumerate(price_list) if x == highest_price]
+
+    #store data of max value/s
+    for i in unit_indices:
+        most_got_product.append(name_list[i])
+        most_got_units.append(unit_list[i])
+        most_got_money.append(price_list[i])
+    for i in price_indices:
+        most_spent_product.append(name_list[i])
+        most_spent_units.append(unit_list[i])
+        most_spent_money.append(price_list[i])
+
+    highest_revenue = max(customer_money)
+    revenue_indices = [i for i, x in enumerate(customer_money) if x == highest_revenue]
+
+    print(highest_revenue)
+    for i in revenue_indices:
+        top_customer_name.append(customer_name[i])
+
+    
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer)
+    # p.setFillColorRGB(0.1,0.7,0.6)
+    # p.rect(0,0, letter[0],letter[1], fill=True,stroke=False)
+    # p.setFillColorRGB(1, 1, 1)
+    p.setFont("Courier", 28)
+    p.setFillColorRGB(0.153, 0.431, 0.153)
+    p.drawString(50,750,"SuperMart")
+
+    p.setFont("Helvetica", 16)
+    p.setFillColorRGB(0, 0, 0)
+    p.line(50, 740, 550, 740)
+
+    p.drawString(50,700, "Total Revenue: Rs."+str(total_spent))
+    p.drawString(50,675, "Total no of checkouts: "+str(product.count()))
+    p.drawString(50,650, "Total no of Customers: "+str(customer_count))
+    p.line(50, 640, 550, 640)
+    p.drawString(50,620, "Top Customer/s: "+", ".join(top_customer_name))
+    p.drawString(50,595, "Highest Revenue from Top Customer/s: "+str(highest_revenue))
+    p.line(50, 585, 560, 585)
+    p.drawString(50,565, "The product customers bought the most no of times:")
+    p.drawString(50,540, "Product: "+", ".join(most_got_product))
+    p.drawString(50,515, "Total units gotten: "+", ".join(map(str,most_got_units)))
+    p.drawString(50,490, "Total spent: Rs."+", Rs.".join(map(str,most_got_money)))
+    p.line(50, 480, 550, 480)
+    p.drawString(50,460, "The product customers spent the most money on:")
+    p.drawString(50,435, "Product: "+", ".join(most_spent_product))
+    p.drawString(50,410, "Total units gotten: "+", ".join(map(str,most_spent_units)))
+    p.drawString(50,385, "Total spent: Rs."+", Rs.".join(map(str,most_spent_money)))
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename="Sales-report.pdf")
 # obj = get_object_or_404(PurchaseHistory,pk=pk)
 # product = zip(obj.product_list['product_name'],obj.product_list['product_unit'],obj.product_list['product_price'])
 # context = {

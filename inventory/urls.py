@@ -75,4 +75,7 @@ urlpatterns = [
 
     path('supermart/manage_customer/<int:pk>', views.manage_customer, name="manage_customer"),
     path('customer_csv_export/<int:pk>', views.customer_csv_export, name="customer_csv_export"),
+
+    path('customer_pdf_report/<int:pk>', views.customer_pdf_report, name="customer_pdf_report"),
+    path('sales_pdf_report/', views.sales_pdf_report, name="sales_pdf_report"),
 ]
