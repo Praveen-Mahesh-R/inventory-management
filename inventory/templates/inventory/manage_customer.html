@@ -6,7 +6,7 @@
 <h4 style="padding: 10px;">Manage:</h4>
 <div ALIGN='center'>
   <a href="{% url 'edit_customer' pk=pk %}" class="btn btn-success">Edit Item</a>
-  <a href="{% url 'customer_csv_export' pk=pk %}" class="btn btn-success">Export Purchase History</a>
+  <a href="{% url 'customer_purchase_csv_export' pk=pk %}" class="btn btn-success">Export Purchase History</a>
   <a href="{% url 'customer_pdf_report' pk=pk %}" class="btn btn-success">Generate Report</a>
 </div>
 

@@ -70,12 +70,15 @@ urlpatterns = [
     path('supermart/add_new_product',views.add_new_product,name="add_new_product"),
 
     path('import_data_to_db/', views.import_data_to_db, name="import_data_to_db"),
-    path('product_excel_export/', views.product_excel_export, name="product_excel_export"),
+    # path('product_excel_export/', views.product_excel_export, name="product_excel_export"),
     path('product_csv_export/', views.product_csv_export, name="product_csv_export"),
 
     path('supermart/manage_customer/<int:pk>', views.manage_customer, name="manage_customer"),
-    path('customer_csv_export/<int:pk>', views.customer_csv_export, name="customer_csv_export"),
+    path('customer_purchase_csv_export/<int:pk>', views.customer_purchase_csv_export, name="customer_purchase_csv_export"),
+    path('customer_csv_export/', views.customer_csv_export, name="customer_csv_export"),
 
     path('customer_pdf_report/<int:pk>', views.customer_pdf_report, name="customer_pdf_report"),
     path('sales_pdf_report/', views.sales_pdf_report, name="sales_pdf_report"),
+
+    path('supplier_csv_export/', views.supplier_csv_export, name="supplier_csv_export"),
 ]

@@ -59,11 +59,16 @@ class StockItems(Model):
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, blank=True, null=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
     stock = models.IntegerField(blank=True, null=True, verbose_name="Stock Units")
+    stock_list = models.JSONField(default=list)
     quantity = models.CharField(max_length=20, verbose_name="Quantity(Per Unit)", blank=True, null=True)
+    quantity_list = models.JSONField(default=list)
     cost_price = models.IntegerField(blank=True, null=True, verbose_name="Cost Price")
+    cost_list = models.JSONField(default=list)
     mrp = models.IntegerField(blank=True, null=True, verbose_name="MRP")
     initial_date = models.DateField(default=date.today, blank=True, null=True)
     restock_date = models.DateField( blank=True, null=True)
+    restock_date_list = models.JSONField(default=list)
+    expiry_date_list = models.JSONField(default=list)
     is_deleted = models.BooleanField(default=False)
 
     

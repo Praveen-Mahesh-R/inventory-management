@@ -57,9 +57,18 @@ def home(request):
     spent = 0
     for cart in bought:
         spent = spent + cart.total_cost
+    
+    products = StockItems.objects.filter(stock = 0).values_list('name', flat=True).distinct()
+    product_list = ""
+    # for p in products:
+    product_list = ", ".join(products)
+    if product_list == "":
+        product_list = "None"
+
     context = {
         'revenue': revenue,
-        'spent': spent
+        'spent': spent,
+        'products':product_list
     }
     return render(request, "inventory/home.html",context)
 
@@ -673,22 +682,23 @@ def import_data_to_db(request):
 
 
 
-def product_excel_export(request):
-    objs = StockItems.objects.all()
-    data = []
-    for obj in objs:
-        data.append({
-            "name": obj.name,
-            "item_type": obj.item_type,
-            "supplier": obj.supplier.name,
-            "stock": obj.stock,
-            "quantity":obj.quantity,
-        })
-    pd.DataFrame(data).to_excel('output.xlsx')
-    return JsonResponse({
-        'status': 200
-    })
+# def product_excel_export(request):
+#     objs = StockItems.objects.all()
+#     data = []
+#     for obj in objs:
+#         data.append({
+#             "name": obj.name,
+#             "item_type": obj.item_type,
+#             "supplier": obj.supplier.name,
+#             "stock": obj.stock,
+#             "quantity":obj.quantity,
+#         })
+#     pd.DataFrame(data).to_excel('output.xlsx')
+#     return JsonResponse({
+#         'status': 200
+#     })
 
+@login_required
 def product_csv_export(request):
     response = HttpResponse(content_type = 'text/csv')
     response['Content-Disposition'] = 'attachment; filename="products.csv"'
@@ -700,8 +710,30 @@ def product_csv_export(request):
     
     return response
 
+@login_required
+def customer_csv_export(request):
+    customers = Customer.objects.all().values_list('name','phone_no')
+    response = HttpResponse(content_type = 'text/csv')
+    response['Content-Disposition'] = 'attachment; filename="customer.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['name','phone_no'])
+    for c in customers:
+        writer.writerow(c)
+    return response
 
-def customer_csv_export(request, pk):
+@login_required
+def supplier_csv_export(request):
+    customers = Supplier.objects.all().values_list('name','phone_no','state__name','city__name')
+    response = HttpResponse(content_type = 'text/csv')
+    response['Content-Disposition'] = 'attachment; filename="supplier.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['name','phone_no','state','city'])
+    for c in customers:
+        writer.writerow(c)
+    return response
+
+@login_required
+def customer_purchase_csv_export(request, pk):
     details = Customer.objects.get(pk=pk)
     product_data = PurchaseHistory.objects.filter(customer_no = details.phone_no)
     response = HttpResponse(content_type = 'text/csv')
@@ -717,9 +749,11 @@ def customer_csv_export(request, pk):
 
     return response
 
+@login_required
 def manage_customer(request,pk):
     return render(request, "inventory/manage_customer.html",{'pk': pk})
 
+@login_required
 def customer_pdf_report(request, pk):
 
     customer = Customer.objects.get(pk=pk)
@@ -800,7 +834,7 @@ def customer_pdf_report(request, pk):
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=customer.name+"-report.pdf")
 
-
+@login_required
 def sales_pdf_report(request):
 
     customer_count = Customer.objects.all().count()

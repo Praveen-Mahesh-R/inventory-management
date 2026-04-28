@@ -7,16 +7,22 @@
   <div class="row" style="border: rgb(185, 185, 185) solid;">
     <div class="col-sm" style="text-align: center; ">
       <br>
-      <h4>Revenue:</h6>
+      <h4>Revenue:</h4>
       <p>&#8377 {{ revenue }}</p>
     </div>
     <div class="col-sm" style="text-align: center;">
       <br>
-      <h4>Expenditure:</h6>
+      <h4>Expenditure:</h4>
       <p>&#8377 {{ spent }}</p>
     </div>
   </div>
-  <p ALIGN='center'>*data is for the current week</p>  
+  <p ALIGN='center'>*data is for the current week</p>
+  <div class="row">
+  <div style="border: rgb(185, 185, 185) solid; padding: 30px;">
+    <h5>Products currently out of stock:</h5>
+    {{ products }}
+  </div>
+  </div>  
 </div>
 <style>
     #one {
