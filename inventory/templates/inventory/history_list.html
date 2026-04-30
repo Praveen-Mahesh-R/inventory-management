@@ -14,6 +14,8 @@
   color: white;
 }
 </style>
+{% else %}
+<a href="{% url 'supply_pdf_report'  %}" class="btn btn-success">Generate Report</a>
 {% endif %}
 
 {% endblock %}

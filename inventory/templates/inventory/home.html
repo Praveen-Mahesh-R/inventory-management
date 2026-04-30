@@ -3,6 +3,8 @@
 {% block content %}
 
 <p style="text-align: center; padding: 30px;">Welcome to Supermart inventory site</p>
+
+{% if user.is_authenticated %}
 <div class="container" style="width: 50%;">
   <div class="row" style="border: rgb(185, 185, 185) solid;">
     <div class="col-sm" style="text-align: center; ">
@@ -24,6 +26,7 @@
   </div>
   </div>  
 </div>
+{% endif %}
 <style>
     #one {
   background-color: #04AA6D;

@@ -81,4 +81,6 @@ urlpatterns = [
     path('sales_pdf_report/', views.sales_pdf_report, name="sales_pdf_report"),
 
     path('supplier_csv_export/', views.supplier_csv_export, name="supplier_csv_export"),
+
+    path('supply_pdf_report/', views.supply_pdf_report, name="supply_pdf_report"),
 ]

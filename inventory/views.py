@@ -21,6 +21,12 @@ import io
 from django.http import FileResponse
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase.pdfmetrics import stringWidth
+from reportlab.platypus import Image, Paragraph, Table
+from reportlab.lib.units import mm
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+
 
 #login view
 def user_login(request):
@@ -183,6 +189,7 @@ def new_item_add(request):
             # if item.restock_date is None:
             #     item.restock_date = date.today()
             item.save()
+
             return redirect('stock_list', type = item.item_type.code)
     else:
         form = ItemForm()
@@ -802,6 +809,22 @@ def customer_pdf_report(request, pk):
         most_spent_units.append(unit_list[i])
         most_spent_money.append(price_list[i])
 
+    top_data = []
+    top_data.append(('Name','Units','Total Revenue'))
+    for x in reversed(sorted(range(len(price_list)), key=lambda i: price_list[i])[-5:]):
+        top_data.append((name_list[x], unit_list[x], price_list[x]))
+    
+    table = Table(top_data, colWidths=170, rowHeights=25)
+    # table.setStyle([("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+    #             ("ALIGN", (0,0), (-1,-1), "CENTER"),
+    #             ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black)])
+    table.setStyle([
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 16),
+        ('LEADING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ])
     
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer)
@@ -810,25 +833,33 @@ def customer_pdf_report(request, pk):
     # p.setFillColorRGB(1, 1, 1)
     p.setFont("Courier", 28)
     p.setFillColorRGB(0.153, 0.431, 0.153)
-    p.drawString(50,750,"SuperMart")
+    p.drawString(50,770,"SuperMart")
 
-    p.setFont("Helvetica", 16)
+    p.setFont("Helvetica", 20)
     p.setFillColorRGB(0, 0, 0)
-    p.line(50, 740, 550, 740)
+    p.line(50, 765, 550, 765)
+    width = stringWidth("Customer Report", "Helvetica", 20)
+    p.drawString(50,735, "Customer Report")
+    p.line(50, 730, 50+width, 730)
+    p.setFont("Helvetica", 16)
     p.drawString(50,700, "Customer Name: "+customer.name)
     p.drawString(50,675, "Customer Phone No: "+str(customer.phone_no))
     p.drawString(50,650, "Total Expenditure: Rs."+str(total_spent))
     p.drawString(50,625, "Total No of Visits: "+str(product.count()))
-    p.line(50, 620, 550, 620)
+    p.line(50, 615, 550, 615)
     p.drawString(50,585, "The product customer bought the most no of times:")
     p.drawString(50,560, "Product: "+", ".join(most_got_product))
     p.drawString(50,535, "Total units gotten: "+", ".join(map(str,most_got_units)))
     p.drawString(50,510, "Total spent: Rs."+", Rs.".join(map(str,most_got_money)))
-    p.line(50, 505, 550, 505)
+    p.line(50, 500, 550, 500)
     p.drawString(50,470, "The product customer spent the most money on:")
     p.drawString(50,445, "Product: "+", ".join(most_spent_product))
     p.drawString(50,420, "Total units gotten: "+", ".join(map(str,most_spent_units)))
     p.drawString(50,395, "Total spent: Rs."+", Rs.".join(map(str,most_spent_money)))
+    p.line(50, 385, 550, 385)
+    p.drawString(50,365, "Top five Products bought:")
+    table.wrapOn(p, 500, 125)
+    table.drawOn(p, 50, 200)
     p.showPage()
     p.save()
     buffer.seek(0)
@@ -901,28 +932,53 @@ def sales_pdf_report(request):
     print(highest_revenue)
     for i in revenue_indices:
         top_customer_name.append(customer_name[i])
+    
+
+    top_data = []
+    top_data.append(('Name','Units','Total Revenue'))
+    for x in reversed(sorted(range(len(price_list)), key=lambda i: price_list[i])[-5:]):
+        top_data.append((name_list[x], unit_list[x], price_list[x]))
+    
+    table = Table(top_data, colWidths=[250,110,150], rowHeights=25)
+    # table.setStyle([("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+    #             ("ALIGN", (0,0), (-1,-1), "CENTER"),
+    #             ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black)])
+    table.setStyle([
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 16),
+        ('LEADING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ])
+    
+    
 
     
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer)
+
+    
     # p.setFillColorRGB(0.1,0.7,0.6)
     # p.rect(0,0, letter[0],letter[1], fill=True,stroke=False)
     # p.setFillColorRGB(1, 1, 1)
     p.setFont("Courier", 28)
     p.setFillColorRGB(0.153, 0.431, 0.153)
-    p.drawString(50,750,"SuperMart")
+    p.drawString(50,770,"SuperMart")
 
-    p.setFont("Helvetica", 16)
+    p.setFont("Helvetica", 20)
     p.setFillColorRGB(0, 0, 0)
-    p.line(50, 740, 550, 740)
-
+    p.line(50, 765, 550, 765)
+    width = stringWidth("Sales Report", "Helvetica", 20)
+    p.drawString(50,735, "Sales Report")
+    p.line(50, 730, 50+width, 730)
+    p.setFont("Helvetica", 16)
     p.drawString(50,700, "Total Revenue: Rs."+str(total_spent))
     p.drawString(50,675, "Total no of checkouts: "+str(product.count()))
     p.drawString(50,650, "Total no of Customers: "+str(customer_count))
     p.line(50, 640, 550, 640)
     p.drawString(50,620, "Top Customer/s: "+", ".join(top_customer_name))
     p.drawString(50,595, "Highest Revenue from Top Customer/s: "+str(highest_revenue))
-    p.line(50, 585, 560, 585)
+    p.line(50, 585, 550, 585)
     p.drawString(50,565, "The product customers bought the most no of times:")
     p.drawString(50,540, "Product: "+", ".join(most_got_product))
     p.drawString(50,515, "Total units gotten: "+", ".join(map(str,most_got_units)))
@@ -932,6 +988,12 @@ def sales_pdf_report(request):
     p.drawString(50,435, "Product: "+", ".join(most_spent_product))
     p.drawString(50,410, "Total units gotten: "+", ".join(map(str,most_spent_units)))
     p.drawString(50,385, "Total spent: Rs."+", Rs.".join(map(str,most_spent_money)))
+    p.line(50, 375, 550, 375)
+    p.drawString(50,355, "Top five Products Sold:")
+    table.wrapOn(p, 500, 125)
+    table.drawOn(p, 50, 190)
+
+
     p.showPage()
     p.save()
     buffer.seek(0)
@@ -942,5 +1004,133 @@ def sales_pdf_report(request):
 #     'product':product,
 #     'total':obj.total_cost
 # }
+
+def supply_pdf_report(request):
+    supply = SupplierHistory.objects.all()
+    total_spent = supply.aggregate(Sum('total_cost'))['total_cost__sum']
+    supplier_count = Supplier.objects.all().count()
+
+
+    top_supplier_name = []
+    supplier_name=[]
+    supplier_money=[]
+    
+    #stores data on item/s the store bought the most number of times
+    most_got_product = []
+    most_got_units = []
+    most_got_money = []
+
+    #stores data on item/s the store spent the most money on during their entire purchase history
+    most_spent_product = []
+    most_spent_units = []
+    most_spent_money = []
+    name_list = []
+    unit_list = []
+    price_list = []
+
+    #get all cart data in singular lists and adds values if already exists in list
+    for cart in supply:
+        name = cart.supplier_name
+        if name in supplier_name:
+                idx = supplier_name.index(name)
+                supplier_name[idx] = supplier_money[idx] + cart.total_cost
+        else:
+            supplier_name.append(name)
+            supplier_money.append(cart.total_cost)
+        json_data = zip(cart.product_list['product_name'],cart.product_list['product_unit'],cart.product_list['product_price'])
+        for name, unit, price in json_data:
+            if name in name_list:
+                idx = name_list.index(name)
+                unit_list[idx] = unit_list[idx] + unit
+                price_list[idx] = price_list[idx] + unit*price
+            else:
+                name_list.append(name)
+                unit_list.append(unit)
+                price_list.append(price*unit)
+    #get max value
+    highest_unit = max(unit_list)
+    highest_price = max(price_list)
+    print(price_list)
+    #get indices of max value/s
+    unit_indices = [i for i, x in enumerate(unit_list) if x == highest_unit]
+    price_indices = [i for i, x in enumerate(price_list) if x == highest_price]
+
+    #store data of max value/s
+    for i in unit_indices:
+        most_got_product.append(name_list[i])
+        most_got_units.append(unit_list[i])
+        most_got_money.append(price_list[i])
+    for i in price_indices:
+        most_spent_product.append(name_list[i])
+        most_spent_units.append(unit_list[i])
+        most_spent_money.append(price_list[i])
+
+    highest_revenue = max(supplier_money)
+    revenue_indices = [i for i, x in enumerate(supplier_money) if x == highest_revenue]
+
+    for i in revenue_indices:
+        top_supplier_name.append(supplier_name[i])
+
+    
+    top_data = []
+    top_data.append(('Name','Units','Total Expense'))
+    for x in reversed(sorted(range(len(price_list)), key=lambda i: price_list[i])[-5:]):
+        top_data.append((name_list[x], unit_list[x], price_list[x]))
+    
+    table = Table(top_data, colWidths=[250,110,150], rowHeights=25)
+    # table.setStyle([("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+    #             ("ALIGN", (0,0), (-1,-1), "CENTER"),
+    #             ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black)])
+    table.setStyle([
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 16),
+        ('LEADING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ])
+
+
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer)
+
+    
+    
+    p.setFont("Courier", 28)
+    p.setFillColorRGB(0.153, 0.431, 0.153)
+    p.drawString(50,770,"SuperMart")
+
+    p.setFont("Helvetica", 20)
+    p.setFillColorRGB(0, 0, 0)
+    p.line(50, 765, 550, 765)
+    width = stringWidth("Supply Report", "Helvetica", 20)
+    p.drawString(50,735, "Supply Report")
+    p.line(50, 730, 50+width, 730)
+    p.setFont("Helvetica", 16)
+    p.drawString(50,700, "Total Expenses: Rs."+str(total_spent))
+    p.drawString(50,675, "Total no of expenditures: "+str(supply.count()))
+    p.drawString(50,650, "Total no of Supplier: "+str(supplier_count))
+    p.line(50, 640, 550, 640)
+    p.drawString(50,620, "Top Supplier/s: "+", ".join(top_supplier_name))
+    p.drawString(50,595, "Supplier's total expenses: "+str(highest_revenue))
+    p.line(50, 585, 550, 585)
+    p.drawString(50,565, "The product stocked the most no of times:")
+    p.drawString(50,540, "Product: "+", ".join(most_got_product))
+    p.drawString(50,515, "Total units stocked/restocked: "+", ".join(map(str,most_got_units)))
+    p.drawString(50,490, "Total spent: Rs."+", Rs.".join(map(str,most_got_money)))
+    p.line(50, 480, 550, 480)
+    p.drawString(50,460, "The product with the most expense:")
+    p.drawString(50,435, "Product: "+", ".join(most_spent_product))
+    p.drawString(50,410, "Total units stocked/restocked: "+", ".join(map(str,most_spent_units)))
+    p.drawString(50,385, "Total spent: Rs."+", Rs.".join(map(str,most_spent_money)))
+    p.line(50, 375, 550, 375)
+    p.drawString(50,355, "Top five Products (Based on Expense):")
+    table.wrapOn(p, 500, 125)
+    table.drawOn(p, 50, 190)
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename="Supply-report.pdf")
+
 
 

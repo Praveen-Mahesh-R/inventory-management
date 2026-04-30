@@ -147,6 +147,7 @@ class SearchForm(forms.Form):
 
 #Form for adding or editing a product in inventory catalogue 
 class ItemForm(forms.ModelForm):
+    quantity = forms.CharField(initial="")
 
     class Meta:
         model = StockItems
@@ -191,7 +192,6 @@ class ItemForm(forms.ModelForm):
                 'type':'date',
                 
             })
-    
     def clean(self):
         cleaned_data = super().clean()
         name = cleaned_data.get('name')
@@ -222,6 +222,16 @@ class ItemForm(forms.ModelForm):
             self.add_error('mrp','MRP should be a positive number')
 
         return cleaned_data
+    
+# class ItemForm2(forms.Form):
+#     quantity = forms.CharField()
+#     cost_price = forms.IntegerField()
+#     restock_date = forms.DateField()
+#     expiry_date = forms.DateField()
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+
 
 #Form for submitting phone number in billing page for checkout
 class PhoneForm(forms.Form):
