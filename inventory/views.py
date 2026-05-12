@@ -26,7 +26,7 @@ from reportlab.platypus import Image, Paragraph, Table
 from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-
+from django.db.models import F, Func, Value, CharField
 
 #login view
 def user_login(request):
@@ -665,11 +665,13 @@ def import_data_to_db(request):
             # df = pd.read_excel(file)
             # sheet = wb.active
             reader = csv.reader(codecs.iterdecode(file,'utf-8'))
-            
+            next(reader)
             supplier = data['supplier']
             # print("------------------HELLO-------------------------------")
-            next(reader)
             for row in reader: 
+                # if len(row[1])!=2:
+                #     continue
+                print(row[0])
                 typeid = ItemType.objects.get(code = row[1]).pk
                 _, created = StockItems.objects.get_or_create(
                     name=row[0],
@@ -710,8 +712,14 @@ def product_csv_export(request):
     response = HttpResponse(content_type = 'text/csv')
     response['Content-Disposition'] = 'attachment; filename="products.csv"'
     writer = csv.writer(response)
-    writer.writerow(['name','item_type','supplier','stock','quantity','cost_price','mrp'])
-    products = StockItems.objects.all().values_list('name','item_type','supplier','stock','quantity','cost_price','mrp')
+    writer.writerow(['name','item_type','supplier','stock','quantity','cost_price','mrp','initial_date'])
+    products = StockItems.objects.all().annotate(
+                formatted_date=Func(
+                    F('initial_date'),
+                    Value('DD-MM-YYYY'),
+                    function='to_char',
+                    output_field=CharField()
+                )).values_list('name','item_type__code','supplier__name','stock','quantity','cost_price','mrp','initial_date')
     for product in products:
         writer.writerow(product)
     
@@ -750,7 +758,7 @@ def customer_purchase_csv_export(request, pk):
     writer.writerow(['product_name','product_unit','product_price','purchase_datetime'])
     for product in product_data:
         json_data = zip(product.product_list['product_name'],product.product_list['product_unit'],product.product_list['product_price'])
-        date_time = product.purchase_datetime
+        date_time = product.purchase_datetime.strftime('%Y-%m-%d %H:%M')
         for name, unit, price in json_data:
             writer.writerow([name,unit,price,date_time])
 
