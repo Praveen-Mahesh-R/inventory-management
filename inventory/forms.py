@@ -6,6 +6,9 @@ from captcha.fields import CaptchaField
 from django.contrib.admin.widgets import AutocompleteSelect
 from django.shortcuts import get_object_or_404
 from django.core.validators import FileExtensionValidator
+from django.core.files.images import get_image_dimensions
+from string import Template
+from django.utils.safestring import mark_safe
 
 
 from .models import *
@@ -256,15 +259,39 @@ class PhoneForm(forms.Form):
             self.add_error('phone_no','There is no customer with this phone number, add new')
         return cleaned_data
 
+
+# class PictureWidget(forms.widgets.Widget):
+#     def render(self, name, value, attrs=None, **kwargs):
+#         html =  Template("""<img src="$link"/>""")
+#         return mark_safe(html.substitute(link=value))
+    
+
 #Form for adding or editing customer details    
 class CustomerForm(forms.ModelForm):
 
     class Meta:
         model = Customer
         fields = '__all__'
+    
+    profile_img = forms.ImageField(widget=forms.FileInput)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        phone_no = cleaned_data.get('phone_no')
+        profile_img = cleaned_data.get('profile_img')
+        width,height = get_image_dimensions(profile_img.file)
+
+        if profile_img:
+            if profile_img.size > 2*1024*1024:
+                self.add_error('profile_img','Should not be more than 2mb')
+            if width > 400 or height > 400:
+                self.add_error('profile_img',"Improper size.")
+        else:
+            self.add_error('profile_img',"Couldn't read uploaded image")
         
         
 class MainCategoryForm(forms.ModelForm):

@@ -19,10 +19,13 @@ class StockTable(tables.Table):
     manage = tables.TemplateColumn(verbose_name="Manage",template_code='{% load static %}<a href="{% url "manage_item" record.id %}"> <img src="{% static \'icons/gear-fill.svg\' %}" </a>', orderable=False)
     restore = tables.TemplateColumn(verbose_name="Restore",template_code='{% load static %}<a href="{% url "restore_check" record.id %}"> <img src="{% static \'icons/restore-svgrepo-com.svg\' %}" width="30" height="30"> </a>', orderable=False)
 
+
+
 class CustomerTable(tables.Table):
     class Meta:
         model = Customer
         template_name = "django_tables2/bootstrap4.html"
+    profile_img = tables.TemplateColumn(template_code=' <img src="/media/{{ record.profile_img }}" style="max-width:100px; height:auto;" >')
     manage = tables.TemplateColumn(verbose_name="Manage",template_code='{% load static %}<a href="{% url "manage_customer" record.id %}"> <img src="{% static \'icons/gear-fill.svg\' %}" </a>', orderable=False)
 
 class cartTable(tables.Table):

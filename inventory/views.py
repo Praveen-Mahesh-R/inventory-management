@@ -163,13 +163,14 @@ def supply_cart_list(request,pk):
 @login_required
 def customer_list(request):
     customer_table = CustomerTable(Customer.objects.all())
+    # Customer.objects.filter(profile_img="media/images/default.jpg").update(profile_img='images/default.jpg')
     query = request.GET.get("q", None)
     if query:
         customer_table = CustomerTable(Customer.objects.filter(
             Q(name__icontains = query)|Q(phone_no__icontains = query)
         ))
     RequestConfig(request).configure(customer_table)
-    customer_table.paginate(page=request.GET.get("page", 1), per_page=8)
+    customer_table.paginate(page=request.GET.get("page", 1), per_page=5)
     return render(request, "inventory/customer_list.html",{"customer_table":customer_table,})
 
 
@@ -280,7 +281,7 @@ def edit_supplier(request,pk):
 @login_required
 def new_customer(request):
     if request.method == "POST":
-        form = CustomerForm(request.POST)
+        form = CustomerForm(request.POST, request.FILES)
         if form.is_valid():
             item = form.save(commit=False)
             item.save()
@@ -294,7 +295,7 @@ def new_customer(request):
 def edit_customer(request, pk):
     item = get_object_or_404(Customer, pk=pk)
     if request.method == "POST":
-        form = CustomerForm(request.POST, instance=item)
+        form = CustomerForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
             item = form.save(commit=False)
             item.save()

@@ -119,7 +119,7 @@ class Customer(Model):
             MaxValueValidator(9999999999,
                               message="Enter correct phone number")
         ])
-
+    profile_img = models.ImageField(upload_to='media/images/', default='media/images/default.jpg')
     def __str__(self):
         return self.name
 

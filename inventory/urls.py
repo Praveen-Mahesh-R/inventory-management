@@ -1,6 +1,10 @@
 from django.urls import path,include
 from . import views
+
+from django.conf import settings
+from django.conf.urls.static import static
 # from inventory.views import Home
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -84,3 +88,7 @@ urlpatterns = [
 
     path('supply_pdf_report/', views.supply_pdf_report, name="supply_pdf_report"),
 ]
+
+# if settings.DEBUG:
+urlpatterns += staticfiles_urlpatterns()
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
