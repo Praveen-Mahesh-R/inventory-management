@@ -27,6 +27,8 @@ from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from django.db.models import F, Func, Value, CharField
+import barcode
+from barcode.writer import ImageWriter
 
 #login view
 def user_login(request):
@@ -97,6 +99,8 @@ def supplier_list(request):
 #Table of items (including deleted items)
 @login_required
 def stock_list(request,type = "all", bool_int = 0):
+    # for items in StockItems.objects.all():
+    #     items.save()
     excluded_columns = ()
     if bool_int:
         excluded_columns = ('manage',)
@@ -180,7 +184,7 @@ def customer_list(request):
 @login_required
 def new_item_add(request):
     if request.method == "POST":
-        form = ItemForm(request.POST)
+        form = ItemForm(request.POST,request.FILES)
         form.fields.pop('restock_date')
         if form.is_valid():
             item = form.save(commit=False)
@@ -189,6 +193,14 @@ def new_item_add(request):
             #     item.initial_date = date.today()
             # if item.restock_date is None:
             #     item.restock_date = date.today()
+            id = (StockItems.objects.last()).pk +1
+            print(id)
+            num = '890'+f"{item.supplier.pk:02d}"+f"{item.item_type.pk:03d}"+f"{id:04d}"
+            EAN = barcode.get_barcode_class('ean13')
+            ean = EAN(num,writer=ImageWriter())
+            path = 'barcode/'+f'{id}_barcode'
+            item.barcode = 'barcode/'+f'{id}_barcode.png'
+            ean.save('media/'+path)
             item.save()
 
             return redirect('stock_list', type = item.item_type.code)
@@ -207,11 +219,18 @@ def manage_item(request,pk):
 def item_edit(request, pk):
     item = get_object_or_404(StockItems, pk=pk)
     if request.method == "POST":
-        form = ItemForm(request.POST, instance=item)
+        form = ItemForm(request.POST,request.FILES, instance=item)
         if form.is_valid():
             item = form.save(commit=False)
             if item.initial_date is None:
-                item.initial_date = date.today()
+                item.initial_date = date.today() 
+            print(f"{item.pk:05d}")
+            num = '890'+f"{item.supplier.pk:02d}"+f"{item.item_type.pk:03d}"+f"{item.pk:04d}"
+            EAN = barcode.get_barcode_class('ean13')
+            ean = EAN(num,writer=ImageWriter())
+            path = 'barcode/'+f'{item.pk}_barcode'
+            item.barcode = 'barcode/'+f'{item.pk}_barcode.png'
+            ean.save('media/'+path)
             item.save()
             return redirect('stock_list', type = item.item_type.code)
     else:
@@ -282,6 +301,7 @@ def edit_supplier(request,pk):
 def new_customer(request):
     if request.method == "POST":
         form = CustomerForm(request.POST, request.FILES)
+        
         if form.is_valid():
             item = form.save(commit=False)
             item.save()
@@ -674,6 +694,13 @@ def import_data_to_db(request):
                 #     continue
                 print(row[0])
                 typeid = ItemType.objects.get(code = row[1]).pk
+                id = (StockItems.objects.last()).pk +1
+                num = '890'+f"{Supplier.objects.get(name = supplier).pk:02d}"+f"{typeid:03d}"+f"{id:04d}"
+                EAN = barcode.get_barcode_class('ean13')
+                ean = EAN(num,writer=ImageWriter())
+                path = 'barcode/'+f'{id}_barcode'
+                bar = 'barcode/'+f'{id}_barcode.png'
+                
                 _, created = StockItems.objects.get_or_create(
                     name=row[0],
                     item_type_id=typeid,
@@ -681,8 +708,10 @@ def import_data_to_db(request):
                     stock=0,
                     quantity=row[2],
                     cost_price=row[3],
-                    mrp=row[4]
+                    mrp=row[4],
+                    barcode=bar
                 )
+                ean.save('media/'+path)
             return redirect('stock_list',)
         # data_to_display = df.to_html()
     else:

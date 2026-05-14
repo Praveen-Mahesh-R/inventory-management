@@ -2,8 +2,10 @@ from django.db import models
 from django.db.models import Model
 from datetime import date
 from django.core.validators import MaxValueValidator, MinValueValidator
-
-
+import barcode
+from barcode.writer import ImageWriter
+from io import BytesIO
+from django.core.files import File
 # Part of supplier address
 class State(Model):
     name = models.CharField(max_length=100)
@@ -67,6 +69,7 @@ class StockItems(Model):
     mrp = models.IntegerField(blank=True, null=True, verbose_name="MRP")
     initial_date = models.DateField(default=date.today, blank=True, null=True)
     restock_date = models.DateField( blank=True, null=True)
+    barcode = models.ImageField(upload_to='barcode/', default=None, null=True, blank=True)
     # restock_date_list = models.JSONField(default=list)
     # expiry_date_list = models.JSONField(default=list)
     is_deleted = models.BooleanField(default=False)
@@ -87,6 +90,15 @@ class StockItems(Model):
     
     def __str__(self):
         return self.name
+    
+    # def save(self, *args, **kwargs):
+    #     num = '890'+f"{self.supplier.pk:04d}"+f"{self.item_type.pk:03d}"+f"{self.pk:05d}"
+    #     EAN = barcode.get_barcode_class('ean13')
+    #     ean = EAN(num,writer=ImageWriter())
+    #     buffer = BytesIO()
+    #     ean.write(buffer)
+    #     self.barcode.save(f'{self.name}_barcode.png',File(buffer),save=False)
+    #     return super().save(*args,**kwargs)
 
 
 
@@ -119,7 +131,7 @@ class Customer(Model):
             MaxValueValidator(9999999999,
                               message="Enter correct phone number")
         ])
-    profile_img = models.ImageField(upload_to='media/images/', default='media/images/default.jpg')
+    profile_img = models.ImageField(upload_to='images/', default='media/images/default.jpg')
     def __str__(self):
         return self.name
 
