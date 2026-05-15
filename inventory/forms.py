@@ -369,3 +369,40 @@ class FileForm(forms.Form):
         self.fields['supplier'].widget.attrs['class'] = 'form-control'
         self.fields['files'].widget.attrs['class'] = 'form-control'
 
+class ScanForm(forms.Form):
+    barnum = forms.IntegerField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+class ScanBillingForm(forms.Form):
+    barnum = forms.IntegerField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        barnum = cleaned_data.get('barnum')
+        if barnum != None:
+            id=int(str(barnum)[9:12])
+            item = StockItems.objects.get(pk=id).name
+            if item and Cart.objects.filter(item=item).exists():
+                raise forms.ValidationError("Already there")
+            if self.is_empty(id):
+                raise forms.ValidationError("No stock")
+            return cleaned_data
+    
+    def is_empty(self,id):
+        stock = get_object_or_404(StockItems,pk = id)
+        if stock.stock == 0:
+            return True
+        return False
+
+
+
+
+    
+
+
+

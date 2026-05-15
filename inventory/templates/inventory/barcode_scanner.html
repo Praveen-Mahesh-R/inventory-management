@@ -1,0 +1,18 @@
+{% extends 'inventory/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<h4 style="padding: 10px;">Scan Item:</h4>
+<div ALIGN='center'>
+  {% crispy form %}
+  {% if exists == False %}
+  <p>Invalid Barcode</p>
+  {% endif %}
+
+</div>
+
+
+
+    
+{% endblock %}

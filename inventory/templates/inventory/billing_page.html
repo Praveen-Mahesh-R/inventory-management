@@ -6,6 +6,11 @@
 
 <div class="left-side" style="float: left; width: 30%; padding: 10px;">
 <div class="add-to-cart">
+    <form method="post">
+    {% csrf_token %}
+    {{ bform.barnum|as_crispy_field }}
+    <!-- <button type="submit" name="submit_code" style="float: left;" class="code-submit"></button> -->
+    </form>
         {% crispy form %}
 </div>
 <hr style="border: 1px dashed;">
@@ -34,6 +39,9 @@
   background-color: #04AA6D;
   color: white;
 }
+    #code-submit{
+        visibility: hidden;
+    }
 </style>
 
 

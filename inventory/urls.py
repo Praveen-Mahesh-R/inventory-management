@@ -87,6 +87,10 @@ urlpatterns = [
     path('supplier_csv_export/', views.supplier_csv_export, name="supplier_csv_export"),
 
     path('supply_pdf_report/', views.supply_pdf_report, name="supply_pdf_report"),
+
+    path('supermart/item_details/<int:pk>', views.item_details, name="item_details"),
+    path('supermart/barcode_scanner/', views.barcode_scanner, name="barcode_scanner"),
+    path('supermart/barcode_scanner/<int:exists>', views.barcode_scanner, name="barcode_scanner"),
 ]
 
 # if settings.DEBUG:

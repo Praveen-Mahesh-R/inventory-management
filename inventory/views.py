@@ -78,6 +78,14 @@ def home(request):
         'spent': spent,
         'products':product_list
     }
+    # for item in StockItems.objects.filter(barcode=None):
+    #     num = '890'+f"{item.supplier.pk:02d}"+f"{item.item_type.pk:03d}"+f"{item.pk:04d}"
+    #     EAN = barcode.get_barcode_class('ean13')
+    #     ean = EAN(num,writer=ImageWriter())
+    #     path = 'barcode/'+f'{item.pk}_barcode'
+    #     item.barcode = 'barcode/'+f'{item.pk}_barcode.png'
+    #     ean.save('media/'+path)
+    #     item.save()
     return render(request, "inventory/home.html",context)
 
 
@@ -237,6 +245,8 @@ def item_edit(request, pk):
         form = ItemForm(instance=item)
     return render(request, "inventory/item_edit.html",{'form': form})
 
+    
+
 #Replenishing stock of an item in inventory
 @login_required
 def add_stock(request,pk):
@@ -333,9 +343,12 @@ def billing(request,):
     if request.method == "POST":
         form = SearchForm(request.POST)
         cform = PhoneForm(request.POST)
+        bform = ScanBillingForm(request.POST)
+        print(request.POST)
         if 'submit_item' in request.POST:  
-            if form.is_valid():
+            if form.is_valid(): 
                 item = form.cleaned_data['item']
+            
                 counter = StockItems.objects.filter(name = item).count()
                 if counter == 1:
                     stock = get_object_or_404(StockItems,name = item)
@@ -347,7 +360,7 @@ def billing(request,):
                                 price = item.mrp
                                 pk = item.pk
                     stock = get_object_or_404(StockItems,pk = pk)
-                    
+                
                 
                 price = stock.mrp
                 Cart.objects.create(
@@ -361,8 +374,27 @@ def billing(request,):
                 # except IntegrityError:
                 #     form.add_error('item','Already there')
                 return redirect('billing',)
+                    
         else:
             form = SearchForm()
+        
+        if 'barnum' in request.POST:
+            print('hello')
+            if bform.is_valid():
+                barnum = bform.cleaned_data['barnum']
+                print('barnum')
+                index = int(str(barnum)[9:12])
+                stock = get_object_or_404(StockItems,pk = index)
+                price = stock.mrp
+                Cart.objects.create(
+                    item=stock.name,
+                    price= stock.mrp,
+                    total_price=stock.mrp,
+                    supplier = stock.supplier
+                )
+                return redirect('billing',)
+        else:
+            bform = ScanBillingForm()
         if 'submit_customer' in request.POST:  
             if cform.is_valid():
                 cust_form = cform.cleaned_data
@@ -403,10 +435,11 @@ def billing(request,):
     else:        
         form = SearchForm()
         cform = PhoneForm()
+        bform = ScanBillingForm()
     cart_table = cartTable(Cart.objects.all())
     total_cost = Cart.objects.aggregate(Sum('total_price'))
     
-    return render(request, "inventory/billing_page.html",{'form':form, 'cform':cform, 'cart_table':cart_table, 'total_cost': total_cost,})
+    return render(request, "inventory/billing_page.html",{'form':form, 'cform':cform,'bform':bform, 'cart_table':cart_table, 'total_cost': total_cost,})
 
 #Deletes all items in cart table
 @login_required
@@ -1171,4 +1204,25 @@ def supply_pdf_report(request):
     return FileResponse(buffer, as_attachment=True, filename="Supply-report.pdf")
 
 
+def barcode_scanner(request,exists = True):
+    if request.method == "POST":
+        form = ScanForm(request.POST,request.FILES)
+        
+        if form.is_valid():
+            item = form.cleaned_data
+            barnum = item['barnum']
+            index = int(str(barnum)[9:12])
+            try:
+                obj = StockItems.objects.get(pk=index)
+                return redirect('item_details', pk = obj.pk)
+            except StockItems.DoesNotExist:
+                exists = False
+            return redirect('barcode_scanner', exists=exists)
+    else:
+        form = ScanForm()
+    return render(request, "inventory/barcode_scanner.html",{'form': form})
 
+def item_details(request,pk):
+    obj = StockItems.objects.get(pk=pk)
+    return render(request, "inventory/item_details.html",{'obj': obj})
+    
