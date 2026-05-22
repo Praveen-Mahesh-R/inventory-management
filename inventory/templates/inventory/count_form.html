@@ -1,6 +1,20 @@
 {% load crispy_forms_tags %}
 
-<form action="{% url 'units_amount' record.id %}" method="post" style="margin: 0%; padding: 0%; display: inline;">
+{% if supplier %}
+    {% with t=0 %}
+    <form action="{% url 'units_amount' record.id supplier %}" method="post" style="margin: 0%; padding: 0%; display: inline;">
     {% csrf_token %}
-    {{ form.as_p }}
-</form>
+    {{ uform.as_p }}
+    </form>
+    {% endwith %}
+{% else %}
+    {% with t=1 %}
+    <form action="{% url 'units_amount' record.id  %}" method="post" style="margin: 0%; padding: 0%; display: inline;">
+    {% csrf_token %}
+    {{ uform.as_p }}
+    </form>
+    {% endwith %}
+
+
+
+{% endif %}

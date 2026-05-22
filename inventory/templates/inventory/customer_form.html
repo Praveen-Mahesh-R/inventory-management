@@ -1,7 +1,11 @@
 {% extends 'inventory/base.html' %}
 {% load crispy_forms_tags %}
+{% load cropping %}
+{% load thumbnail %}
 
 {% block content %}
+
+
 {% if form.instance.pk is None %}
 <h4 style="padding: 10px;">Add new customer:</h4>
 {% else %}
@@ -23,6 +27,11 @@
         </div>
         {% endif %}
         {{ form.profile_img|as_crispy_field}}
+        <!-- {% csrf_token %}
+    {{ form.as_p }} -->
+       
+
+
     </div>
     <button type="submit" style="display: flex;" class="save btn btn-success">Submit</button>
 </form>

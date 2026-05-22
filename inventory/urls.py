@@ -18,7 +18,7 @@ urlpatterns = [
     path('supermart/stock/<int:bool_int>', views.stock_list, name="stock_list"),
     path('supermart/stock/<str:type>/<int:bool_int>', views.stock_list, name="stock_list"),
 
-    path('supermart/new_item_add/', views.new_item_add, name="new_item_add"),
+    path('supermart/new_item_add/<int:t>', views.new_item_add, name="new_item_add"),
     path('supermart/manage_item/<int:pk>', views.manage_item, name="manage_item"),
     path('supermart/item_edit/<int:pk>', views.item_edit, name="item_edit"),
 
@@ -55,6 +55,7 @@ urlpatterns = [
     path('supermart/logout/', views.logout_check, name="logout_check"),
     
     path('supermart/billing/', views.billing, name="billing"),
+    path('units_amount/<int:pk>', views.units_amount, name="units_amount"),
     
     path('cart_list/<int:pk>',views.cart_list, name="cart_list"),
     path('clear_table/', views.clear_table, name="clear_table"),
@@ -66,7 +67,7 @@ urlpatterns = [
     path('supply_cart_list/<int:pk>',views.supply_cart_list, name="supply_cart_list"),
 
     path('add_to_cart/<int:pk>', views.add_to_cart, name="add_to_cart"),
-    path('units_amount/<int:pk>', views.units_amount, name="units_amount"),
+    path('units_amount/<int:pk><str:supplier>', views.units_amount, name="units_amount"),
     path('supermart/<str:supplier>/checkout/', views.supplier_checkout, name="supplier_checkout"),
     path('clear_supply_table/<str:supplier>', views.clear_supply_table, name="clear_supply_table"),
     path('delete_item/<int:pk>', views.delete_item, name="delete_item"),

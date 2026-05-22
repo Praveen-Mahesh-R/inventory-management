@@ -34,6 +34,10 @@ class cartTable(tables.Table):
         model = Cart
         exclude = ('id','supplier')
         template_name = "django_tables2/bootstrap.html"
+        sequence = ('item','units','stock','...')
+        
+    stock =  tables.Column(empty_values=()) 
+    count = tables.TemplateColumn(template_name="inventory/count_form.html")
     plus = tables.TemplateColumn(verbose_name="", template_code='{% load static %}<a href="{% url "plus_units" record.id %}"> <img src="{% static \'icons/plus-square.svg\' %}" </a>')
     minus = tables.TemplateColumn(verbose_name="", template_code='{% load static %}<a href="{% url "minus_units" record.id %}"> <img src="{% static \'icons/dash-square.svg\' %}" </a>')
 
@@ -42,7 +46,9 @@ class cartTable(tables.Table):
         self.columns['plus'].column.attrs = {"td":{"style" : "width:1%;" }}
         self.columns['minus'].column.attrs = {"td":{"style" : "width:1%;" }}
 
-
+    def render_stock(self,record):
+        amt = StockItems.objects.get(name=record.item, supplier__name=record.supplier).stock
+        return amt
 
 
 class HistoryTable(tables.Table):

@@ -6,6 +6,8 @@ import barcode
 from barcode.writer import ImageWriter
 from io import BytesIO
 from django.core.files import File
+from image_cropping import ImageRatioField
+
 # Part of supplier address
 class State(Model):
     name = models.CharField(max_length=100)
@@ -120,6 +122,17 @@ class Cart(Model):
     
     def __str__(self):
         return str(self.item)
+def upload_location(instance,filename):
+    filebase, extension = filename.split('.')
+    if instance.pk:
+        name=str(instance.pk)+instance.name
+        return 'images/%s.%s' % (name, extension)
+    else:
+        id = (Customer.objects.last()).pk
+        print(id)
+        name=str(id+1)+instance.name
+        print(name)
+        return 'images/%s.%s' % (name, extension)
 
 # Databse of customer details    
 class Customer(Model):
@@ -131,9 +144,13 @@ class Customer(Model):
             MaxValueValidator(9999999999,
                               message="Enter correct phone number")
         ])
-    profile_img = models.ImageField(upload_to='images/', default='media/images/default.jpg')
+    profile_img = models.ImageField(upload_to=upload_location, default='media/images/default.jpg')
+
+    # cropping = ImageRatioField('profile_img', '200x200')
     def __str__(self):
         return self.name
+    
+
 
 # Database of past customer purchases
 class PurchaseHistory(Model):

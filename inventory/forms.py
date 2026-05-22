@@ -9,7 +9,8 @@ from django.core.validators import FileExtensionValidator
 from django.core.files.images import get_image_dimensions
 from string import Template
 from django.utils.safestring import mark_safe
-
+from image_cropping import ImageCropWidget
+from image_cropping import ImageCropField, ImageRatioField
 
 from .models import *
 
@@ -108,6 +109,7 @@ class SearchForm(forms.Form):
     def product_choices():
         return [('','------')]+[(item, item ) for item in StockItems.objects.filter(is_deleted = False).values_list('name', flat=True).distinct()]
     item = forms.ChoiceField(
+        label="Choose Item:",
         choices= product_choices)
 
     def __init__(self, *args, **kwargs):
@@ -154,7 +156,7 @@ class ItemForm(forms.ModelForm):
 
     class Meta:
         model = StockItems
-        exclude = ('stock',)
+        fields = '__all__'
         
 
     def __init__(self, *args, **kwargs):
@@ -168,6 +170,7 @@ class ItemForm(forms.ModelForm):
                 css_class='form-row'
             ),
             'quantity',
+            'stock',
             Row(
                 Column('cost_price', css_class='form-group col-md-6 mb-0'),
                 Column('mrp', css_class='form-group col-md-6 mb-0'),
@@ -269,9 +272,16 @@ class PhoneForm(forms.Form):
 #Form for adding or editing customer details    
 class CustomerForm(forms.ModelForm):
 
+    # profile_img = ImageCropField(blank=True, upload_to='images/')
+    # # size is "width x height"
+    # cropping = ImageRatioField('profile_img', '200x200')
     class Meta:
         model = Customer
         fields = '__all__'
+        widgets = {
+            'profile_img': ImageCropWidget,
+        }
+    
     
     profile_img = forms.ImageField(widget=forms.FileInput)
 
@@ -370,13 +380,13 @@ class FileForm(forms.Form):
         self.fields['files'].widget.attrs['class'] = 'form-control'
 
 class ScanForm(forms.Form):
-    barnum = forms.IntegerField(required=True)
+    barnum = forms.IntegerField(required=True,label="Barcode Number:")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
 class ScanBillingForm(forms.Form):
-    barnum = forms.IntegerField()
+    barnum = forms.IntegerField(label="Barcode Number:")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

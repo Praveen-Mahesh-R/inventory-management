@@ -20,6 +20,7 @@
 
         {% endfor %}
         {% endif %}
+        {{ form.media }}
 
         
     </head>
@@ -35,8 +36,7 @@
             <a id="eight" href="{%url 'history_list' %}">Purchase History</a>
             <a id="customer" href="{%url 'customer_list' %}">Customers</a>
             <a id="six" href="{% url 'billing' %}" style="margin-left: auto; margin-right: 0;">Billing</a>
-            <!-- <a id="seven" href="{% url 'new_item_add' %}" style="margin-left: 0;">Add New Product</a>
-            <a id="seven" href="{% url 'import_data_to_db' %}" style="margin-left: 0;">Add New Product(Bulk)</a> -->
+            
             
             <a href="{% url 'logout_check' %}"><span class="glyphicon glyphicon-log-out"></span>   Logout</a>
             {% else %}

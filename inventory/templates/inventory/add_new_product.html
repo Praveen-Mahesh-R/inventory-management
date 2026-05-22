@@ -4,12 +4,54 @@
 {% block content %}
 
 <h4 style="padding: 10px;" ALIGN='center'>How do you want to add a new product?</h4>
-<div ALIGN='center'>
-  <a href="{% url 'new_item_add' %}" class="btn btn-danger">Manually</a>
+
+{% with t=0 %}
+<div ALIGN='center' id="option-one" style="display:block">
+  <a href="{% url 'new_item_add' t %}" class="btn btn-danger">Manually</a>
   <a href="{% url 'import_data_to_db' %}" class="btn btn-success">In Bulk</a>
+</div>
+{% endwith %}
+
+{% with t=1 %}
+<div ALIGN='center' id="option-two" style="display:none">
+  <a href="{% url 'new_item_add' t %}" class="btn btn-danger">Manually</a>
+  <a href="{% url 'import_data_to_db' %}" class="btn btn-success">In Bulk</a>
+</div>
+{% endwith %}
+
+<div ALIGN='center'>
+<label class="switch" style="margin-top: 20px;">
+  <input type="checkbox" id="myCheck" onclick="myFunction()"> <p>Include Stock values</p>
+  <span class="slider round"></span>
+</label>
 </div>
 <!-- <p ALIGN='center'><b>Remainder:</b> Restoring this category will all move all deleted items of this category out of recycle bin</p> -->
 
+<script>
+  function myFunction() {
+  // Get the checkbox
+  var checkBox = document.getElementById("myCheck");
+  // Get the output text
+  var one = document.getElementById("option-one");
+  var two = document.getElementById("option-two");
+
+  // If the checkbox is checked, display the output text
+  if (checkBox.checked == true){
+    one.style.display = "none";
+    two.style.display = "block";
+  } else {
+    one.style.display = "block";
+    two.style.display = "none";
+  }
+}
+</script>
+
+<style>
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
 
 
     

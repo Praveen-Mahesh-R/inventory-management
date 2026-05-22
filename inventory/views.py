@@ -190,17 +190,24 @@ def customer_list(request):
 
 #Adding new item to inventory catalogue
 @login_required
-def new_item_add(request):
+def new_item_add(request,t):
     if request.method == "POST":
         form = ItemForm(request.POST,request.FILES)
-        form.fields.pop('restock_date')
+        # print(t +"--------------------------------")
+        if t==0:
+            form.fields.pop('stock')
+            form.fields.pop('restock_date')
+        # else:
+        #     form.fields.pop('restock_date')
         if form.is_valid():
             item = form.save(commit=False)
-            item.stock = 0
+            if item.stock is None:
+                item.stock = 0
+            else:
+                if item.restock_date is None:
+                    item.restock_date = date.today()
             # if item.initial_date is None:
             #     item.initial_date = date.today()
-            # if item.restock_date is None:
-            #     item.restock_date = date.today()
             id = (StockItems.objects.last()).pk +1
             print(id)
             num = '890'+f"{item.supplier.pk:02d}"+f"{item.item_type.pk:03d}"+f"{id:04d}"
@@ -209,12 +216,34 @@ def new_item_add(request):
             path = 'barcode/'+f'{id}_barcode'
             item.barcode = 'barcode/'+f'{id}_barcode.png'
             ean.save('media/'+path)
+            
+            
+            if item.stock > 0:
+                name_list = []
+                unit_list = []
+                price_list = []
+                name_list.append(item.name)
+                unit_list.append(item.stock)
+                price_list.append(item.cost_price)
+                json_data = {
+                    "product_name":name_list,
+                    "product_unit":unit_list,
+                    "product_price":price_list
+                }
+                SupplierHistory.objects.create(
+                supplier_name = item.supplier.name,
+                product_list = json_data,
+                total_cost = item.cost_price*item.stock)
             item.save()
 
             return redirect('stock_list', type = item.item_type.code)
     else:
         form = ItemForm()
-        form.fields.pop('restock_date')
+        if t==0:
+            form.fields.pop('stock')
+            form.fields.pop('restock_date')
+        # else:
+        #     form.fields.pop('restock_date')
     return render(request, "inventory/new_item_add.html",{'form': form})
 
 #Page to view and select various functions regarding inventory item
@@ -429,6 +458,7 @@ def billing(request,):
                 )
                 
                 messages.success(request,"Purchase Successfull!!")
+                Cart.objects.all().delete()
                 return redirect('cart_list', pk=PurchaseHistory.objects.last().pk)
         else:
             cform = PhoneForm()
@@ -438,8 +468,9 @@ def billing(request,):
         bform = ScanBillingForm()
     cart_table = cartTable(Cart.objects.all())
     total_cost = Cart.objects.aggregate(Sum('total_price'))
+    uform = CountForm()
     
-    return render(request, "inventory/billing_page.html",{'form':form, 'cform':cform,'bform':bform, 'cart_table':cart_table, 'total_cost': total_cost,})
+    return render(request, "inventory/billing_page.html",{'form':form, 'cform':cform,'bform':bform, 'cart_table':cart_table,'uform':uform, 'total_cost': total_cost})
 
 #Deletes all items in cart table
 @login_required
@@ -479,10 +510,10 @@ def supplier_restock(request, supplier):
     product_table = SupplierCatalogueTable(StockItems.objects.filter(supplier__name__contains = supplier))
     cart_table = SupplierCartTable(SupplierCart.objects.filter(supplier = supplier))
     total_cost = SupplierCart.objects.filter(supplier = supplier).aggregate(Sum('total_price'))
-    form = CountForm()
+    uform = CountForm()
     RequestConfig(request).configure(product_table)
     product_table.paginate(page=request.GET.get("page", 1), per_page=8)
-    return render(request, "inventory/supplier_restock.html",{'product_table':product_table, 'cart_table':cart_table, 'total_cost': total_cost, 'form':form, 'supplier':supplier})
+    return render(request, "inventory/supplier_restock.html",{'product_table':product_table, 'cart_table':cart_table, 'total_cost': total_cost, 'uform':uform, 'supplier':supplier})
 
 #Adds an item to cart in restocking page
 @login_required
@@ -498,20 +529,37 @@ def add_to_cart(request,pk):
 
 #Change the units of items to buy
 @login_required
-def units_amount(request, pk):
-    obj = get_object_or_404(SupplierCart,pk=pk)
-    supplier = obj.supplier
-    if request.method == "POST":
-        form = CountForm(request.POST,request.FILES)
-        if form.is_valid():
-            item = form.cleaned_data
-            obj.units = item['units']
-            obj.total_price = obj.units * obj.price
-            obj.save()
-            return redirect('supplier_restock', supplier = supplier)
+def units_amount(request, pk, supplier=''):
+    print(supplier)
+    if supplier != '':
+        obj = get_object_or_404(SupplierCart,pk=pk)
+        supplier = obj.supplier
+        if request.method == "POST":
+            form = CountForm(request.POST,request.FILES)
+            if form.is_valid():
+                item = form.cleaned_data
+                obj.units = item['units']
+                obj.total_price = obj.units * obj.price
+                obj.save()
+                return redirect('supplier_restock', supplier = supplier)
+        else:
+            form = CountForm()
     else:
-        form = CountForm()
-    return redirect('supplier_restock', supplier = supplier)
+        obj = get_object_or_404(Cart,pk=pk)
+        product = get_object_or_404(StockItems, name = obj.item, supplier__name__contains = obj.supplier)
+        if request.method == "POST":
+            form = CountForm(request.POST,request.FILES)
+            if form.is_valid():
+                item = form.cleaned_data
+                obj.units = item['units']
+                if obj.units >= product.stock:
+                    messages.warning(request, "No More Stock")
+                    return redirect('billing')
+                obj.total_price =  obj.price * obj.units
+                obj.save()
+                return redirect('billing')
+        else:
+            form = CountForm()
 
 #Delete the cart for one supplier
 @login_required
@@ -722,29 +770,60 @@ def import_data_to_db(request):
             next(reader)
             supplier = data['supplier']
             # print("------------------HELLO-------------------------------")
+
+            name_list = []
+            unit_list = []
+            price_list = []
+
+            total_cost = 0
+            supplier_id = Supplier.objects.get(name = supplier).pk
             for row in reader: 
                 # if len(row[1])!=2:
                 #     continue
                 print(row[0])
+                print(supplier)
+                if not row[5]:
+                    stock=0
+                else:
+                    stock=int(row[5])
+                
                 typeid = ItemType.objects.get(code = row[1]).pk
                 id = (StockItems.objects.last()).pk +1
-                num = '890'+f"{Supplier.objects.get(name = supplier).pk:02d}"+f"{typeid:03d}"+f"{id:04d}"
+                num = '890'+f"{supplier_id:02d}"+f"{typeid:03d}"+f"{id:04d}"
                 EAN = barcode.get_barcode_class('ean13')
                 ean = EAN(num,writer=ImageWriter())
                 path = 'barcode/'+f'{id}_barcode'
                 bar = 'barcode/'+f'{id}_barcode.png'
                 
+                
                 _, created = StockItems.objects.get_or_create(
                     name=row[0],
                     item_type_id=typeid,
                     supplier=supplier,
-                    stock=0,
+                    stock=stock,
                     quantity=row[2],
                     cost_price=row[3],
                     mrp=row[4],
                     barcode=bar
                 )
+                if stock>0:   
+                    name_list.append(row[0])
+                    unit_list.append(stock)
+                    price_list.append(row[3])
+                    total_cost = total_cost + (stock*int(row[3]))
+
                 ean.save('media/'+path)
+            if name_list:
+                json_data = {
+                    "product_name":name_list,
+                    "product_unit":unit_list,
+                    "product_price":price_list
+                }
+                SupplierHistory.objects.create(
+                supplier_name = supplier,
+                product_list = json_data,
+                total_cost = total_cost)
+
             return redirect('stock_list',)
         # data_to_display = df.to_html()
     else:
