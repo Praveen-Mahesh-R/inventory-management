@@ -1,0 +1,25 @@
+{% extends 'inventory/base.html' %}
+
+
+{% block content %}
+
+<h4 style="padding: 10px;">Export data fully:</h4>
+<div ALIGN='center'>
+  <a href="{% url 'customer_purchase_csv_export' pk=pk %}" class="btn btn-success">CSV</a>
+  <a href="{% url 'customer_purchase_excel_export' pk=pk %}" class="btn btn-success">Excel(xlsx)</a>
+</div>
+
+<h4 style="padding: 10px;">Export data filtered by date:</h4>
+<div ALIGN='center'>
+    <form action="{% url 'customer_purchase_excel_export' pk=pk %}" method="get" style="margin: 0%; padding: 0%; display: inline;">
+    {% csrf_token %}
+    {{ form.as_p }}
+        <button class="btn btn-success" type="submit">Excel(xlsx)</button>
+    </form>
+  <!-- <a href="{% url 'customer_purchase_csv_export' pk=pk %}" class="btn btn-success">CSV</a>
+  <a href="{% url 'customer_purchase_excel_export' pk=pk %}" class="btn btn-success">Excel(xlsx)</a> -->
+</div>
+
+
+    
+{% endblock %}

@@ -82,6 +82,13 @@ urlpatterns = [
     path('customer_purchase_csv_export/<int:pk>', views.customer_purchase_csv_export, name="customer_purchase_csv_export"),
     path('customer_csv_export/', views.customer_csv_export, name="customer_csv_export"),
 
+    path('customer_purchase_export/<int:pk>', views.customer_purchase_export, name="customer_purchase_export"),
+
+    path('customer_excel_export/', views.customer_excel_export, name="customer_excel_export"),
+    path('product_excel_export/', views.product_excel_export, name="product_excel_export"),
+    path('customer_purchase_excel_export/<int:pk>', views.customer_purchase_excel_export, name="customer_purchase_excel_export"),
+    
+
     path('customer_pdf_report/<int:pk>', views.customer_pdf_report, name="customer_pdf_report"),
     path('sales_pdf_report/', views.sales_pdf_report, name="sales_pdf_report"),
 

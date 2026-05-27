@@ -408,6 +408,18 @@ class ScanBillingForm(forms.Form):
         if stock.stock == 0:
             return True
         return False
+    
+class DateRangeForm(forms.Form):
+    start_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=False
+    )
+    end_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=False
+    )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 

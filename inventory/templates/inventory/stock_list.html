@@ -41,7 +41,8 @@
   <a href="{% url 'add_new_product' %}">Add New Product</a>
   <a href="{% url 'barcode_scanner' %}">Scan Product</a>
   <a href="{% url 'stock_list' type=type bool_int=1 %}">Recycle Bin</a>
-  <a href="{% url 'product_csv_export' %}">Export product data</a>
+  <a href="{% url 'product_csv_export' %}">Export product data(as CSV)</a>
+  <a href="{% url 'product_excel_export' %}">Export product data(as Excel)</a>
   </div>
 </div>
 

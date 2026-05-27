@@ -29,6 +29,8 @@ from reportlab.lib.pagesizes import A4
 from django.db.models import F, Func, Value, CharField
 import barcode
 from barcode.writer import ImageWriter
+from .admin import *
+import xlsxwriter
 
 #login view
 def user_login(request):
@@ -905,6 +907,119 @@ def customer_purchase_csv_export(request, pk):
             writer.writerow([name,unit,price,date_time])
 
     return response
+
+@login_required
+def customer_purchase_export(request,pk):
+    form = DateRangeForm()
+    return render(request, 'inventory/customer_purchase_export.html', {'pk':pk, 'form':form})
+
+@login_required
+def customer_excel_export(request):
+    customer = Customer.objects.all()
+    ds = CustomerResource().export(customer)
+    # format = request.POST.get('format')
+    response = HttpResponse(ds.xls, content_type=f"{'xls'}")
+    response['Content-Disposition']=f"attachment; filename=customer.{'xls'}"
+    return response
+
+@login_required
+def customer_purchase_excel_export(request,pk):
+    customer = Customer.objects.get(pk=pk)
+    form = DateRangeForm(request.GET)
+    print(request.method)
+    if request.method == 'GET':
+        if form.is_valid():
+            print("----------------------yes")
+            start = form.cleaned_data.get('start_date')
+            end = form.cleaned_data.get('end_date')
+            print(str(start)+str(end))
+            if start and end:
+                purchase_data = PurchaseHistory.objects.filter(customer_no = customer.phone_no, purchase_datetime__date__range=(start,end)).order_by('-purchase_datetime')
+                print("----------------------and")
+            elif start:
+                print("----------------------start")
+                purchase_data = PurchaseHistory.objects.filter(customer_no = customer.phone_no, purchase_datetime__date__gte=start).order_by('-purchase_datetime')
+            elif end:
+                print("----------------------end")
+                purchase_data = PurchaseHistory.objects.filter(customer_no = customer.phone_no, purchase_datetime__date__lte=end).order_by('-purchase_datetime')
+    else:
+        print("----------------------no")
+        purchase_data = PurchaseHistory.objects.filter(customer_no = customer.phone_no).order_by('-purchase_datetime')
+    # ds = HistoryResource().export(purchase_data)
+    # format = request.POST.get('format')
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output,{'in_memory': True})
+    worksheet = workbook.add_worksheet()
+    bold = workbook.add_format({'bold': True})
+    row = 5
+    column = 0
+
+    #Time of download
+    worksheet.write(0,0,'Download Date:',bold)
+    worksheet.write(0,1,str(date.today()))
+
+    #Customer Details
+    worksheet.write(1,0,'Customer Name:',bold)
+    worksheet.write(1,1,customer.name)
+    worksheet.write(2,0,'Customer Phone No:',bold)
+    worksheet.write(2,1,customer.phone_no)
+
+    #Headers
+    worksheet.write(4,0,'Purchase Datetime',bold)
+    worksheet.write(4,1,'Product Name',bold)
+    worksheet.write(4,2,'Product Unit',bold)
+    worksheet.write(4,3,'Product Price',bold)
+    date_time_x = ""
+    grand_total = 0
+    #Table
+    for product in purchase_data:
+        json_data = zip(product.product_list['product_name'],product.product_list['product_unit'],product.product_list['product_price'])
+        date_time = product.purchase_datetime.strftime('%Y-%m-%d %H:%M')
+        if date_time is not date_time_x:
+            worksheet.write(row,column,date_time)
+            date_time_x = date_time
+        total = 0
+        for name, unit, price in json_data:
+            worksheet.write(row,column+1,name)
+            worksheet.write(row,column+2,unit)
+            worksheet.write(row,column+3,price)
+            total = total + price
+            row += 1
+        worksheet.write(row,column+2,'Total:',bold)
+        worksheet.write(row,column+3,total)
+        grand_total = grand_total + total
+        row += 2
+    worksheet.write(row,column+2,'Grand Total:',bold)
+    worksheet.write(row,column+3,grand_total)
+    workbook.close()
+
+    output.seek(0)
+
+
+    response = HttpResponse(output.read(), content_type=f"{'xlsx'}")
+    response['Content-Disposition'] = 'attachment; filename=\"'+ customer.name + '\".xlsx'
+
+    output.close()
+
+    return response
+    
+
+    response = HttpResponse(ds.xls, content_type=f"{'xls'}")
+    name = customer.name
+    response['Content-Disposition']=f'attachment; filename="' + name + f'".{'xls'}'
+    return response
+
+@login_required
+def product_excel_export(request):
+    product = StockItems.objects.all()
+    ds = ItemResource().export(product)
+    # format = request.POST.get('format')
+    response = HttpResponse(ds.xls, content_type=f"{'xls'}")
+    response['Content-Disposition']=f"attachment; filename=product.{'xls'}"
+    return response
+
+
+    
 
 @login_required
 def manage_customer(request,pk):

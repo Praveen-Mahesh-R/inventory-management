@@ -34,5 +34,7 @@ $RECYCLE.BIN/
 *.csv
 *.xlsx
 *.pdf
+*.xls
+*.xlsx#
 
 /media/
