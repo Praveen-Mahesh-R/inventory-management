@@ -10,8 +10,7 @@
 {% render_table customer_table %}
 <div class="bottom-left-button">
   <a href="{% url 'new_customer' %}" class="btn btn-success">Add New Customer</a>
-  <a href="{% url 'customer_csv_export' %}" class="btn btn-success">Export Customer Data</a>
-  <a href="{% url 'customer_excel_export' %}" class="btn btn-success">Export Customer Data 2</a>
+  <a href="{% url 'customer_export' %}" class="btn btn-success">Export Customer Data</a>
 </div>
 
 <style>

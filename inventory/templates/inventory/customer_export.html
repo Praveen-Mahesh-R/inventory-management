@@ -1,0 +1,13 @@
+{% extends 'inventory/base.html' %}
+
+
+{% block content %}
+
+<h4 style="padding: 10px;">Export customer data as:</h4>
+<div ALIGN='center'>
+  <a href="{% url 'customer_csv_export' %}" class="btn btn-success">CSV</a>
+  <a href="{% url 'customer_excel_export' %}" class="btn btn-success">Excel(Xls)</a>
+</div>
+
+
+{% endblock %}

@@ -11,7 +11,14 @@
     <button class="btn btn-primary" type="submit">Submit</button> 
 </form>
 <br>
+{% if x == 0 %}
 <p ALIGN='center'><b>Remainder:</b> File should be .csv and should contain fields <br> 'name', 'item_type', 'quantity', 'cost_price' and 'mrp' only in the same order</p>
+{% elif x == 1 %}
+<p ALIGN='center'><b>Remainder:</b> File should be .csv and should contain fields <br> 'name', 'item_type', 'quantity', 'cost_price' and 'mrp' only in the same order</p>
+<p ALIGN='center'>Name of all the products should remain the same, if change needed,<br> please do it manually </p>
+{% elif x == 2 %}
+<p ALIGN='center'><b>Remainder:</b> File should be .csv and should contain fields <br> 'name' and 'stock' only in the same order</p>
+{% endif %}
 <!-- <div ALIGN='center'>
   {{ form|as_crispy_errors }}
   {% crispy form %}

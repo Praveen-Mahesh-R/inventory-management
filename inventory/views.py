@@ -31,6 +31,7 @@ import barcode
 from barcode.writer import ImageWriter
 from .admin import *
 import xlsxwriter
+import functools
 
 #login view
 def user_login(request):
@@ -592,6 +593,7 @@ def supplier_checkout(request,supplier):
         unit_list.append(cart.units)
         price_list.append(cart.price)
         stock_list.stock = stock_list.stock + cart_units
+        stock_list.restock_date = date.today()
         stock_list.save()
     json_data = {
         "product_name":name_list,
@@ -755,7 +757,7 @@ def add_new_product(request):
 
 @login_required
 def import_data_to_db(request):
-    
+    x=0
     
     if request.method == 'POST':
         form = FileForm(request.POST,request.FILES)
@@ -830,7 +832,128 @@ def import_data_to_db(request):
         # data_to_display = df.to_html()
     else:
         form = FileForm()
-    return render(request, "inventory/upload.html",{ 'form':form})
+    return render(request, "inventory/upload.html",{ 'form':form,'x':x})
+
+@login_required
+def edit_data_to_db(request):
+    x=1
+    
+    if request.method == 'POST':
+        form = FileForm(request.POST,request.FILES)
+        if form.is_valid():
+            data = form.cleaned_data
+            file = data['files']
+            # obj = File.objects.create(
+            #     file=file
+            # )
+            # wb = openpyxl.load_workbook(file)
+            # df = pd.read_excel(file)
+            # sheet = wb.active
+            reader = csv.reader(codecs.iterdecode(file,'utf-8'))
+            next(reader)
+            supplier = data['supplier']
+            # print("------------------HELLO-------------------------------")
+
+            
+            supplier_id = Supplier.objects.get(name = supplier).pk
+            for row in reader: 
+                # if len(row[1])!=2:
+                #     continue
+                print(row[0])
+                print(supplier)
+                try:
+                    obj = StockItems.objects.get(
+                        name=row[0],
+                        supplier=supplier,
+                    )
+                    
+                    typeid = ItemType.objects.get(code = row[1]).pk
+                    id = (StockItems.objects.last()).pk +1
+                    num = '890'+f"{supplier_id:02d}"+f"{typeid:03d}"+f"{id:04d}"
+                    EAN = barcode.get_barcode_class('ean13')
+                    ean = EAN(num,writer=ImageWriter())
+                    path = 'barcode/'+f'{id}_barcode'
+                    bar = 'barcode/'+f'{id}_barcode.png'
+
+                    cost_price = int(''.join(row[3]))
+                    # cost_price = functools.reduce(lambda sub, ele: sub * 10 + ele, row[3])
+                    mrp = int(''.join(row[4]))
+                    # mrp = functools.reduce(lambda sub, ele: sub * 10 + ele, row[4])
+                    obj.item_type.pk=typeid
+                    obj.quantity=row[2]
+                    obj.cost_price=cost_price
+                    obj.mrp=mrp
+                    obj.barcode=bar
+
+                    ean.save('media/'+path)
+                    obj.save()
+                except StockItems.DoesNotExist:
+                    continue
+
+            return redirect('stock_list',)
+        # data_to_display = df.to_html()
+    else:
+        form = FileForm()
+    return render(request, "inventory/upload.html",{ 'form':form,'x':x})
+
+
+
+@login_required
+def restock_items_bulk(request):
+    x=2
+    
+    if request.method == 'POST':
+        form = FileForm(request.POST,request.FILES)
+        if form.is_valid():
+            data = form.cleaned_data
+            file = data['files']
+            supplier = data['supplier']
+            # obj = File.objects.create(
+            #     file=file
+            # )
+            # wb = openpyxl.load_workbook(file)
+            # df = pd.read_excel(file)
+            # sheet = wb.active
+            reader = csv.reader(codecs.iterdecode(file,'utf-8'))
+            next(reader)
+            # print("------------------HELLO-------------------------------")
+
+            name_list = []
+            unit_list = []
+            price_list = []
+
+            total_cost = 0
+            # supplier_id = Supplier.objects.get(name = supplier).pk
+            for row in reader: 
+                try:
+                    obj = StockItems.objects.get(name=row[0],supplier__name=supplier)
+                    obj.stock = obj.stock + int(row[1])
+                    price = obj.cost_price
+                    name_list.append(row[0])
+                    unit_list.append(row[1])
+                    price_list.append(price)
+                    total_cost = total_cost + (price * int(row[1]))
+                    obj.restock_date = date.today()
+                    obj.save()
+                except StockItems.DoesNotExist:
+                    continue
+                
+            json_data = {
+                    "product_name":name_list,
+                    "product_unit":unit_list,
+                    "product_price":price_list
+                }
+            SupplierHistory.objects.create(
+                supplier_name = supplier,
+                product_list = json_data,
+                total_cost = total_cost)
+                
+
+            return redirect('supply_cart_list', pk=SupplierHistory.objects.last().pk)
+        # data_to_display = df.to_html()
+    else:
+        form = FileForm()
+    return render(request, "inventory/upload.html",{ 'form':form,'x':x})
 
 
 
@@ -879,6 +1002,10 @@ def customer_csv_export(request):
     for c in customers:
         writer.writerow(c)
     return response
+
+@login_required
+def customer_export(request):
+    return render(request, 'inventory/customer_export.html', {})
 
 @login_required
 def supplier_csv_export(request):
